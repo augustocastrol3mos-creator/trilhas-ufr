@@ -15,13 +15,13 @@ const STATUS: Record<string, { rotulo: string; classe: string }> = {
 
 export default async function MeusCursosPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { data, error } = await supabase
     .from('matricula')
     .select('id, status, turma(identificador, curso(titulo, carga_horaria, modalidade))')
+    .eq('usuario_id', user?.id ?? '')
     .order('criado_em', { ascending: false })
-
-  if (error) {
-    return (
       <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
         {error.message}
       </div>
