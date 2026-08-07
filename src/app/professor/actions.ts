@@ -23,3 +23,15 @@ export async function fecharTurma(turmaId: string, decisoes: Decisao[]) {
   revalidatePath('/meus-cursos')
   return { ok: true, ...data }
 }
+
+export async function reabrirTurma(turmaId: string, justificativa: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('reabrir_turma', {
+    p_turma: turmaId,
+    p_justificativa: justificativa,
+  })
+  if (error) return { erro: error.message }
+
+  revalidatePath(`/professor/turmas/${turmaId}`, 'layout')
+  return { ok: true }
+}

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ClipboardCheck } from 'lucide-react'
+import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,11 @@ export default async function TurmaPage({
 }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: perfil } = await supabase
+    .from('usuario').select('papel').eq('id', user?.id ?? '').single()
+  const ehAdmin = perfil?.papel === 'admin'
 
   const { data: turma } = await supabase
     .from('turma')
@@ -74,9 +80,12 @@ export default async function TurmaPage({
         )}
       </div>
 
-      {encerrada && (
+      {encerrada && ehAdmin && <ReabrirTurma turmaId={id} />}
+
+      {encerrada && !ehAdmin && (
         <div className="mt-4 rounded-lg border border-primary-soft bg-primary-soft p-4 text-sm text-ink">
-          Turma encerrada. As notas foram congeladas e os certificados emitidos.
+          Turma encerrada. As notas foram congeladas e os certificados emitidos. Reabrir é ação
+          exclusiva da coordenação.
         </div>
       )}
 

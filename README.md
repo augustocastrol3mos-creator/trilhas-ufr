@@ -27,6 +27,7 @@ blocos de texto, checkpoint, vídeo e quiz.
 - Reabertura de turma registrada em log
 - Auditoria unificada de ajustes, decisões divergentes e atos da coordenação
 - Reordenação de módulos e blocos
+- Coordenação edita qualquer curso e fecha/reabre qualquer turma, com link direto
 - Landing pública para visitantes sem conta, com login integrado
 
 ## O que não existe ainda

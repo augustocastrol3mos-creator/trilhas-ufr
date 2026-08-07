@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, BookOpen, ScrollText, Users } from 'lucide-react'
+import { Award, BookOpen, ScrollText, Users, Presentation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -23,6 +23,8 @@ export default async function AdminPage() {
     { href: '/admin/cursos', Icon: BookOpen, titulo: 'Cursos', valor: v.cursosPublicados,
       detalhe: v.cursosEmAnalise > 0 ? `${v.cursosEmAnalise} aguardando autorização` : 'nenhum aguardando' ,
       alerta: v.cursosEmAnalise > 0 },
+    { href: '/admin/turmas', Icon: Presentation, titulo: 'Turmas', valor: v.matriculas,
+      detalhe: 'editar, fechar ou reabrir qualquer turma' },
     { href: '/admin/certificados', Icon: Award, titulo: 'Certificados', valor: v.certificadosAtivos,
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/auditoria', Icon: ScrollText, titulo: 'Auditoria', valor: v.ajustesDeNota,

@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Pencil } from 'lucide-react'
 import { autorizarPublicacao } from '../actions'
 
 export default function CardCurso({
@@ -46,6 +48,19 @@ export default function CardCurso({
           }`}
         >
           {curso.status === 'em_analise' ? 'em análise' : curso.status}
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
+        <Link
+          href={`/professor/cursos/${curso.id}`}
+          className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Editar conteúdo
+        </Link>
+        <span className="text-xs text-subtle">
+          A coordenação edita qualquer curso, mesmo sem ser a autora.
         </span>
       </div>
 

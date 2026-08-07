@@ -16,10 +16,10 @@ export async function autorizarPublicacao(cursoId: string, aprovar: boolean, mot
   const { data, error } = await supabase.rpc('autorizar_publicacao', {
     p_curso: cursoId, p_aprovar: aprovar, p_motivo: motivo ?? null,
   })
-  if (error) return { erro: error.message }
+  if (error) return { ok: false as const, erro: error.message }
   revalidatePath('/admin/cursos')
   revalidatePath('/cursos')
-  return data as { ok: boolean; pendencias?: string[] }
+  return data as { ok: boolean; pendencias?: string[]; erro?: string }
 }
 
 export async function revogarCertificado(certificadoId: string, motivo: string) {
