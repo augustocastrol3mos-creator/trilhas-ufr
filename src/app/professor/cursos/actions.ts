@@ -115,11 +115,11 @@ export async function alternarPublicacao(cursoId: string, publicar: boolean) {
     p_curso: cursoId,
     p_publicar: publicar,
   })
-  if (error) return { erro: error.message }
+  if (error) return { ok: false as const, erro: error.message }
 
   revalidatePath(`/professor/cursos/${cursoId}`)
   revalidatePath('/cursos')
-  return data as { ok: boolean; status?: string; pendencias?: string[] }
+  return data as { ok: boolean; status?: string; pendencias?: string[]; erro?: string }
 }
 
 export async function moverItem(
