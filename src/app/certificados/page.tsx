@@ -13,6 +13,9 @@ export default async function CertificadosPage() {
     .select('id, codigo, curso_titulo, carga_horaria, emitido_em, revogado_em, matricula!inner(usuario_id)')
     .eq('matricula.usuario_id', user?.id ?? '')
     .order('emitido_em', { ascending: false })
+
+  if (error) {
+    return (
       <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
         {error.message}
       </div>
