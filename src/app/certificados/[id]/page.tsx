@@ -1,0 +1,63 @@
+import { notFound } from 'next/navigation'
+import QRCode from 'qrcode'
+import { createClient } from '@/lib/supabase/server'
+import { CertificadoFrente, CertificadoVerso, type CertificadoDados } from '@/components/Certificado'
+import BotaoImprimir from './BotaoImprimir'
+
+export const dynamic = 'force-dynamic'
+
+export default async function CertificadoPage({
+  params,
+}: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: c } = await supabase.from('certificado').select('*').eq('id', id).single()
+  if (!c) notFound()
+
+  const { data: cfg } = await supabase
+    .from('configuracao')
+    .select('instituicao_nome, url_base')
+    .single()
+
+  const base = cfg?.url_base ?? 'http://localhost:3000'
+  const urlValidacao = `${base}/validar/${c.codigo}`
+
+  let qr: string | null = null
+  try {
+    qr = await QRCode.toDataURL(urlValidacao, { margin: 1, width: 200 })
+  } catch {
+    qr = null
+  }
+
+  const dados = c as unknown as CertificadoDados
+
+  return (
+    <div>
+      <div className="no-print mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink">{c.curso_titulo}</h1>
+          <p className="mt-1 text-sm text-muted">
+            Código {c.codigo} · para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
+          </p>
+        </div>
+        <BotaoImprimir />
+      </div>
+
+      {c.revogado_em && (
+        <div className="no-print mb-6 rounded-lg bg-danger-soft p-4 text-sm text-danger">
+          Este certificado foi revogado{c.revogado_motivo ? `: ${c.revogado_motivo}` : '.'}
+        </div>
+      )}
+
+      <div className="space-y-6">
+        <div className="pagina overflow-hidden rounded-lg border border-border shadow-sm">
+          <CertificadoFrente c={dados} instituicao={cfg?.instituicao_nome ?? 'A UFR'} />
+        </div>
+        <div className="pagina overflow-hidden rounded-lg border border-border shadow-sm">
+          <CertificadoVerso c={dados} qrDataUrl={qr} urlValidacao={urlValidacao} />
+        </div>
+      </div>
+    </div>
+  )
+}

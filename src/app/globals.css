@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  /* Superfícies */
+  --color-canvas: #f3f5f4;
+  --color-surface: #ffffff;
+  --color-border: #e3e5e8;
+  --color-border-strong: #cdd1d5;
+
+  /* Texto */
+  --color-ink: #1a1d1f;
+  --color-muted: #6b7280;
+  --color-subtle: #9aa0a6;
+
+  /* Primária — decisão, aprovação, ação principal */
+  --color-primary: #1f7a4d;
+  --color-primary-dark: #145c39;
+  --color-primary-soft: #e4f2e9;
+
+  /* Atenção — pendência, aguardando, "fique atento" */
+  --color-accent: #c08a2e;
+  --color-accent-soft: #fbf1de;
+
+  /* Erro / reprovação */
+  --color-danger: #b3261e;
+  --color-danger-soft: #fbeae9;
+
+  /* Sidebar institucional */
+  --color-sidebar: #20242a;
+  --color-sidebar-foreground: #c7cbd1;
+  --color-sidebar-muted: #82898f;
+  --color-sidebar-active: #26362d;
+  --color-sidebar-border: #2e3238;
+
+  --font-display: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media print {
+  .no-print { display: none !important; }
+
+  main { max-width: none !important; padding: 0 !important; }
+  body { background: #fff; }
+
+  .pagina {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+  }
+  .pagina:last-child { break-after: auto; }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
