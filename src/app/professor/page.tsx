@@ -13,6 +13,8 @@ export default async function ProfessorPage() {
     .select('id, identificador, tipo, status, encontro_data, encontro_local, curso(titulo, modalidade)')
     .eq('instrutor_id', user?.id ?? '')
     .order('identificador')
+
+  if (error) {
     return (
       <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
         {error.message}
