@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { salvarBloco, excluirBloco } from '@/app/professor/cursos/actions'
 import type { TipoBloco } from '@/lib/blocos/schemas'
+import EditorMaterial from './EditorMaterial'
 
 const campo = 'mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink'
 const rotulo = 'block text-sm font-medium text-ink'
@@ -161,8 +162,10 @@ export default function EditorBloco({
           </>
         )}
 
-        {bloco.tipo === 'quiz' && (
-          <EditorQuiz config={config} set={set} />
+        {bloco.tipo === 'quiz' && <EditorQuiz config={config} set={set} />}
+
+        {bloco.tipo === 'material' && (
+          <EditorMaterial blocoId={bloco.id} config={config} set={set} />
         )}
       </div>
 

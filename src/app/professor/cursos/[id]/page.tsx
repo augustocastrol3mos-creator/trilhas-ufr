@@ -58,6 +58,32 @@ export default async function EditorCursoPage({
         </p>
       </div>
 
+      {lista.length === 0 && (
+        <div className="mt-4 rounded-lg border border-border bg-surface p-6">
+          <p className="font-display font-semibold text-ink">Como montar seu curso</p>
+          <ol className="mt-3 space-y-2 text-sm text-muted">
+            <li>
+              <span className="font-medium text-ink">1.</span> Crie um módulo. Ele agrupa o
+              conteúdo de uma aula ou tema.
+            </li>
+            <li>
+              <span className="font-medium text-ink">2.</span> Adicione blocos ao módulo: vídeo do
+              YouTube, texto, material em PDF, quiz ou uma confirmação de leitura. Você combina
+              como quiser, na ordem que quiser.
+            </li>
+            <li>
+              <span className="font-medium text-ink">3.</span> Marque como obrigatório o que trava
+              a trilha. Blocos opcionais são material de apoio.
+            </li>
+            <li>
+              <span className="font-medium text-ink">4.</span> Use{' '}
+              <span className="font-medium text-ink">Revisar e pré-visualizar</span> para ver como
+              o aluno enxerga e o que ainda falta antes de publicar.
+            </li>
+          </ol>
+        </div>
+      )}
+
       <ol className="mt-4 space-y-4">
         {lista.map((m: any) => (
           <li key={m.id} className="rounded-lg border border-border bg-surface p-5">

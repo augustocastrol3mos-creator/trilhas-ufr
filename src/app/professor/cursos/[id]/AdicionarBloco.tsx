@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { FileText, ListChecks, PlayCircle, CheckSquare } from 'lucide-react'
+import { FileText, ListChecks, PlayCircle, CheckSquare, Download } from 'lucide-react'
 import { criarBloco } from '@/app/professor/cursos/actions'
 import { TIPOS_DISPONIVEIS, ROTULOS_TIPO } from '@/lib/blocos/defaults'
 import type { TipoBloco } from '@/lib/blocos/schemas'
@@ -11,6 +11,7 @@ const ICONES: Record<string, typeof FileText> = {
   video: PlayCircle,
   quiz: ListChecks,
   checkpoint: CheckSquare,
+  material: Download,
 }
 
 export default function AdicionarBloco({
@@ -22,6 +23,10 @@ export default function AdicionarBloco({
   return (
     <div className="mt-4 border-t border-border pt-4">
       <p className="text-xs text-subtle">Adicionar bloco a &quot;{moduloTitulo}&quot;</p>
+      <p className="mt-0.5 text-xs text-subtle">
+        Vídeo roda no YouTube · Texto aceita Markdown · Material aceita PDF e planilha ·
+        Quiz é corrigido automaticamente
+      </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {TIPOS_DISPONIVEIS.map((tipo: TipoBloco) => {
           const Icon = ICONES[tipo] ?? FileText

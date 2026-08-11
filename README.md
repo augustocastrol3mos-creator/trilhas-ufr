@@ -32,6 +32,10 @@ blocos de texto, checkpoint, vídeo e quiz.
 - Devolutiva por questão no quiz, com gabarito conforme política do professor
 - Conclusão de leitura por botão, com rolagem até o fim e tempo mínimo
 - "Continuar de onde parou" e tempo estimado por módulo
+- Revisão pré-publicação com diagnóstico por bloco e prévia navegável
+- Bloco de material com upload para o Storage
+- Progresso individual do aluno visível ao professor
+- Análise de acerto por questão do quiz
 - Landing pública para visitantes sem conta, com login integrado
 
 ## O que não existe ainda
@@ -100,6 +104,7 @@ Pelo SQL Editor do painel, execute na ordem:
 7. `supabase/migrations/0006_autoria.sql`
 8. `supabase/migrations/0007_admin.sql`
 9. `supabase/migrations/0008_trilha.sql`
+10. `supabase/migrations/0009_professor.sql`
 
 Cada arquivo inteiro, de uma vez. Se algum der erro, pare e resolva antes de seguir.
 

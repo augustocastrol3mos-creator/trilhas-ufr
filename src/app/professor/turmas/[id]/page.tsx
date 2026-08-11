@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardCheck } from 'lucide-react'
+import { ArrowLeft, BarChart3, ClipboardCheck } from 'lucide-react'
 import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -69,6 +69,14 @@ export default async function TurmaPage({
           </p>
         </div>
 
+        <div className="flex flex-wrap gap-3">
+        <Link
+          href={`/professor/turmas/${id}/analise`}
+          className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-ink hover:border-primary hover:text-primary"
+        >
+          <BarChart3 className="h-4 w-4" />
+          Análise das questões
+        </Link>
         {!encerrada && (turma as any).curso?.modalidade === 'hibrido' && (
           <Link
             href={`/professor/turmas/${id}/fechamento`}
@@ -78,6 +86,7 @@ export default async function TurmaPage({
             Fechar turma
           </Link>
         )}
+        </div>
       </div>
 
       {encerrada && ehAdmin && <ReabrirTurma turmaId={id} />}
@@ -103,7 +112,12 @@ export default async function TurmaPage({
             {alunos.map((a) => (
               <tr key={a.matriculaId} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
-                  <p className="font-medium text-ink">{a.nome || '(sem nome)'}</p>
+                  <Link
+                    href={`/professor/turmas/${id}/alunos/${a.matriculaId}`}
+                    className="font-medium text-ink hover:text-primary hover:underline"
+                  >
+                    {a.nome || '(sem nome)'}
+                  </Link>
                   <p className="text-xs text-subtle">{a.email}</p>
                 </td>
                 <td className="px-4 py-3">

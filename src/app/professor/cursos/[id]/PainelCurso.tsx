@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Eye, EyeOff } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, ClipboardList } from 'lucide-react'
+import Link from 'next/link'
 import { alternarPublicacao } from '@/app/professor/cursos/actions'
 
 export default function PainelCurso({
@@ -39,6 +40,14 @@ export default function PainelCurso({
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-3">
+        <Link
+          href={`/professor/cursos/${curso.id}/revisar`}
+          className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-ink hover:border-primary hover:text-primary"
+        >
+          <ClipboardList className="h-4 w-4" />
+          Revisar e pré-visualizar
+        </Link>
         <button
           disabled={pendente || (!publicado && !podePublicar)}
           onClick={() =>
@@ -59,6 +68,7 @@ export default function PainelCurso({
           {publicado ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           {pendente ? 'Salvando...' : publicado ? 'Despublicar' : emAnalise ? 'Reenviar para autorização' : 'Enviar para autorização'}
         </button>
+        </div>
       </div>
 
       {emAnalise && (

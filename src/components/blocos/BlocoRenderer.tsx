@@ -6,6 +6,7 @@ import BlocoTexto from './BlocoTexto'
 import BlocoCheckpoint from './BlocoCheckpoint'
 import BlocoVideo from './BlocoVideo'
 import BlocoQuiz from './BlocoQuiz'
+import BlocoMaterial from './BlocoMaterial'
 
 // Registry: adicionar um tipo é uma entrada aqui + um componente. Nada mais.
 const REGISTRY = {
@@ -13,6 +14,7 @@ const REGISTRY = {
   checkpoint: BlocoCheckpoint,
   video: BlocoVideo,
   quiz: BlocoQuiz,
+  material: BlocoMaterial,
 } as const
 
 export type PropsBloco = {

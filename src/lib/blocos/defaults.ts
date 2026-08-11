@@ -57,4 +57,4 @@ export const ROTULOS_TIPO: Record<TipoBloco, string> = {
 }
 
 /** Tipos com editor construído nesta versão. */
-export const TIPOS_DISPONIVEIS: TipoBloco[] = ['texto', 'video', 'quiz', 'checkpoint']
+export const TIPOS_DISPONIVEIS: TipoBloco[] = ['texto', 'video', 'quiz', 'checkpoint', 'material']

@@ -53,3 +53,13 @@ export async function submeterQuiz(
   revalidatePath(`/trilha/${matriculaId}`, 'layout')
   return { ok: true, ...data }
 }
+
+export async function urlDoMaterial(path: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.storage
+    .from('materiais')
+    .createSignedUrl(path, 60 * 10)
+
+  if (error) return { erro: error.message }
+  return { url: data.signedUrl }
+}
