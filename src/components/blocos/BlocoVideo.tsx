@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { videoSchema, type BlocoAluno } from '@/lib/blocos/schemas'
+import { videoSchema } from '@/lib/blocos/schemas'
 import { registrarProgressoVideo } from '@/app/trilha/actions'
+import type { PropsBloco } from './BlocoRenderer'
 
 declare global {
   interface Window {
@@ -30,16 +31,15 @@ function carregarApi(): Promise<void> {
   })
 }
 
-export default function BlocoVideo({
-  bloco, matriculaId,
-}: { bloco: BlocoAluno; matriculaId: string }) {
+export default function BlocoVideo({ bloco, matriculaId, estado, onConcluir }: PropsBloco) {
   const parsed = videoSchema.safeParse(bloco.config)
   const containerRef = useRef<HTMLDivElement>(null)
   const fatiasRef = useRef<Set<number>>(new Set())
+  const concluidoRef = useRef(estado === 'concluido')
+
   const [percentual, setPercentual] = useState(
     Number(bloco.dados?.percentualAssistido ?? 0)
   )
-  const [concluido, setConcluido] = useState(bloco.estado === 'concluido')
 
   useEffect(() => {
     if (!parsed.success || !containerRef.current) return
@@ -58,7 +58,6 @@ export default function BlocoVideo({
         playerVars: { rel: 0, modestbranding: 1, cc_load_policy: 1 },
         events: {
           onStateChange: (e: any) => {
-            // 1 = tocando
             if (e.data === 1 && !timer) {
               timer = setInterval(tick, 1000)
             } else if (e.data !== 1 && timer) {
@@ -84,7 +83,10 @@ export default function BlocoVideo({
       const pct = Math.min(100, (fatiasRef.current.size / totalFatias) * 100)
       if (pct <= 0) return
       const r = await registrarProgressoVideo(matriculaId, bloco.blocoId, pct)
-      if (r?.concluido) setConcluido(true)
+      if (r?.concluido && !concluidoRef.current) {
+        concluidoRef.current = true
+        onConcluir()
+      }
     }
 
     return () => {
@@ -92,27 +94,44 @@ export default function BlocoVideo({
       if (timer) clearInterval(timer)
       player?.destroy?.()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsed.success, matriculaId, bloco.blocoId])
 
   if (!parsed.success) {
-    return <p className="text-sm text-red-600">Configuração inválida deste bloco.</p>
+    return <p className="text-sm text-danger">Configuração inválida deste bloco.</p>
   }
+
+  const meta = parsed.data.percentualMinimo
+  const concluido = estado === 'concluido'
 
   return (
     <div>
       <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
         <div ref={containerRef} className="h-full w-full" />
       </div>
+
       <div className="mt-3 flex items-center gap-3">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border">
           <div
             className="h-full bg-primary transition-all"
             style={{ width: `${Math.round(percentual)}%` }}
           />
+          {!concluido && (
+            <span
+              className="absolute top-0 h-full w-px bg-accent"
+              style={{ left: `${meta}%` }}
+              title={`Meta: ${meta}%`}
+            />
+          )}
         </div>
-        <span className="text-sm text-muted">{Math.round(percentual)}%</span>
+        <span className="shrink-0 text-sm text-muted">{Math.round(percentual)}%</span>
       </div>
-      {concluido && <p className="mt-2 text-sm text-primary">Vídeo concluído.</p>}
+
+      {!concluido && (
+        <p className="mt-2 text-xs text-subtle">
+          Assista pelo menos {meta}% para concluir. A marca em âmbar mostra a meta.
+        </p>
+      )}
     </div>
   )
 }

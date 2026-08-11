@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { checkpointSchema, type BlocoAluno } from '@/lib/blocos/schemas'
+import { useTransition } from 'react'
+import { checkpointSchema } from '@/lib/blocos/schemas'
 import { concluirBloco } from '@/app/trilha/actions'
+import type { PropsBloco } from './BlocoRenderer'
 
-export default function BlocoCheckpoint({
-  bloco, matriculaId,
-}: { bloco: BlocoAluno; matriculaId: string }) {
+export default function BlocoCheckpoint({ bloco, matriculaId, estado, onConcluir }: PropsBloco) {
   const parsed = checkpointSchema.safeParse(bloco.config)
-  const [concluido, setConcluido] = useState(bloco.estado === 'concluido')
+  const concluido = estado === 'concluido'
   const [pendente, iniciar] = useTransition()
 
   if (!parsed.success) {
-    return <p className="text-sm text-red-600">Configuração inválida deste bloco.</p>
+    return <p className="text-sm text-danger">Configuração inválida deste bloco.</p>
   }
 
   const { texto, rotuloBotao } = parsed.data
@@ -30,7 +29,7 @@ export default function BlocoCheckpoint({
               const r = await concluirBloco(matriculaId, bloco.blocoId, {
                 confirmadoEm: new Date().toISOString(),
               })
-              if (!r.erro) setConcluido(true)
+              if (!r.erro) onConcluir()
             })
           }
           className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"

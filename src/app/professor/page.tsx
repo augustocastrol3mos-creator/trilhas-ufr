@@ -6,10 +6,12 @@ export const dynamic = 'force-dynamic'
 
 export default async function ProfessorPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: turmas, error } = await supabase
     .from('turma')
     .select('id, identificador, tipo, status, encontro_data, encontro_local, curso(titulo, modalidade)')
+    .eq('instrutor_id', user?.id ?? '')
     .order('identificador')
 
   if (error) {

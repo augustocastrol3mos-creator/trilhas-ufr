@@ -28,6 +28,10 @@ blocos de texto, checkpoint, vídeo e quiz.
 - Auditoria unificada de ajustes, decisões divergentes e atos da coordenação
 - Reordenação de módulos e blocos
 - Coordenação edita qualquer curso e fecha/reabre qualquer turma, com link direto
+- Trilha reativa: progresso e liberação do próximo módulo sem recarregar
+- Devolutiva por questão no quiz, com gabarito conforme política do professor
+- Conclusão de leitura por botão, com rolagem até o fim e tempo mínimo
+- "Continuar de onde parou" e tempo estimado por módulo
 - Landing pública para visitantes sem conta, com login integrado
 
 ## O que não existe ainda
@@ -95,6 +99,7 @@ Pelo SQL Editor do painel, execute na ordem:
 6. `supabase/migrations/0005_fechamento.sql`
 7. `supabase/migrations/0006_autoria.sql`
 8. `supabase/migrations/0007_admin.sql`
+9. `supabase/migrations/0008_trilha.sql`
 
 Cada arquivo inteiro, de uma vez. Se algum der erro, pare e resolva antes de seguir.
 

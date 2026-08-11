@@ -35,28 +35,43 @@ export default async function MeusCursosPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-ink">Meus cursos</h1>
-      </div>
+      <h1 className="font-display text-2xl font-semibold text-ink">Meus cursos</h1>
+      <p className="mt-1 text-sm text-muted">Suas matrículas e o progresso em cada trilha.</p>
 
-      <ul className="mt-8 space-y-4">
-        {matriculas.map((m) => (
-          <li key={m.id} className="rounded-lg border border-border bg-surface p-5">
-            <Link href={`/trilha/${m.id}`} className="text-lg font-medium hover:underline">
-              {m.turma?.curso?.titulo}
-            </Link>
-            <p className="mt-1 text-sm text-muted">
-              {STATUS[m.status]?.rotulo ?? m.status} · {m.turma?.curso?.carga_horaria}h
-            </p>
-          </li>
-        ))}
+      <ul className="mt-6 space-y-3">
+        {matriculas.map((m) => {
+          const status = STATUS[m.status] ?? { rotulo: m.status, classe: 'border border-border-strong text-muted' }
+          return (
+            <li key={m.id}>
+              <Link
+                href={`/trilha/${m.id}`}
+                className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-display text-base font-semibold text-ink">
+                    {m.turma?.curso?.titulo}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${status.classe}`}>
+                      {status.rotulo}
+                    </span>
+                    <span className="text-xs text-subtle">{m.turma?.curso?.carga_horaria}h</span>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-subtle" />
+              </Link>
+            </li>
+          )
+        })}
       </ul>
 
       {matriculas.length === 0 && (
-        <p className="mt-6 text-sm text-neutral-500">
-          Você ainda não se inscreveu em nenhum curso.{' '}
-          <Link href="/cursos" className="underline">Ver cursos disponíveis</Link>.
-        </p>
+        <div className="mt-6 rounded-lg border border-dashed border-border-strong p-8 text-center">
+          <p className="text-sm text-muted">Você ainda não se inscreveu em nenhum curso.</p>
+          <Link href="/cursos" className="mt-2 inline-block text-sm font-medium text-primary hover:underline">
+            Ver cursos disponíveis
+          </Link>
+        </div>
       )}
     </div>
   )

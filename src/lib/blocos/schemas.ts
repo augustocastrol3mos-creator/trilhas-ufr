@@ -78,4 +78,5 @@ export type ModuloTrilha = {
   concluidos: number
   concluido: boolean
   liberado: boolean
+  tempoMinutos: number
 }
