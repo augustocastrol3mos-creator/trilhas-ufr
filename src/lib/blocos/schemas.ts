@@ -24,6 +24,14 @@ export const checkpointSchema = z.object({
   rotuloBotao: z.string().min(1).max(40).default('Marcar como concluído'),
 })
 
+export const materialSchema = z.object({
+  arquivos: z.array(z.object({
+    nome: z.string().min(1),
+    path: z.string().min(1),
+    tamanhoBytes: z.number().int().positive(),
+  })).min(1).max(10),
+})
+
 const alternativaPublica = z.object({ id: z.string(), texto: z.string() })
 
 export const questaoPublicaSchema = z.discriminatedUnion('tipo', [
