@@ -12,8 +12,22 @@ export default async function CertificadoPage({
   const { id } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) notFound()
+
   const { data: c } = await supabase.from('certificado').select('*').eq('id', id).single()
   if (!c) notFound()
+
+  // Mesmo motivo da trilha: certificado_admin (e_admin()) soma por OR com
+  // certificado_proprio. Sem esta checagem, admin abre o certificado alheio.
+  const { data: minha } = await supabase
+    .from('matricula')
+    .select('id')
+    .eq('id', c.matricula_id)
+    .eq('usuario_id', user.id)
+    .maybeSingle()
+
+  if (!minha) notFound()
 
   const { data: cfg } = await supabase
     .from('configuracao')

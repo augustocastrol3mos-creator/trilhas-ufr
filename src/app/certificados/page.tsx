@@ -1,77 +1,69 @@
-import { notFound } from 'next/navigation'
-import QRCode from 'qrcode'
+import Link from 'next/link'
+import { Award, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { CertificadoFrente, CertificadoVerso, type CertificadoDados } from '@/components/Certificado'
-import BotaoImprimir from './BotaoImprimir'
 
 export const dynamic = 'force-dynamic'
 
-export default async function CertificadoPage({
-  params,
-}: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function CertificadosPage() {
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) notFound()
 
-  const { data: c } = await supabase.from('certificado').select('*').eq('id', id).single()
-  if (!c) notFound()
+  const { data, error } = await supabase
+    .from('certificado')
+    .select('id, codigo, curso_titulo, carga_horaria, emitido_em, revogado_em, matricula!inner(usuario_id)')
+    .eq('matricula.usuario_id', user?.id ?? '')
+    .order('emitido_em', { ascending: false })
 
-  // Mesmo motivo da trilha: certificado_admin (e_admin()) soma por OR com
-  // certificado_proprio. Sem esta checagem, admin abre o certificado alheio.
-  const { data: minha } = await supabase
-    .from('matricula')
-    .select('id')
-    .eq('id', c.matricula_id)
-    .eq('usuario_id', user.id)
-    .maybeSingle()
-
-  if (!minha) notFound()
-
-  const { data: cfg } = await supabase
-    .from('configuracao')
-    .select('instituicao_nome, url_base')
-    .single()
-
-  const base = cfg?.url_base ?? 'http://localhost:3000'
-  const urlValidacao = `${base}/validar/${c.codigo}`
-
-  let qr: string | null = null
-  try {
-    qr = await QRCode.toDataURL(urlValidacao, { margin: 1, width: 200 })
-  } catch {
-    qr = null
+  if (error) {
+    return (
+      <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
+        {error.message}
+      </div>
+    )
   }
 
-  const dados = c as unknown as CertificadoDados
+  const certificados = data ?? []
 
   return (
     <div>
-      <div className="no-print mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">{c.curso_titulo}</h1>
-          <p className="mt-1 text-sm text-muted">
-            Código {c.codigo} · para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
-          </p>
-        </div>
-        <BotaoImprimir />
-      </div>
+      <h1 className="font-display text-2xl font-semibold text-ink">Certificados</h1>
+      <p className="mt-1 text-sm text-muted">
+        Emitidos automaticamente ao concluir um curso, ou pelo professor após o encontro presencial.
+      </p>
 
-      {c.revogado_em && (
-        <div className="no-print mb-6 rounded-lg bg-danger-soft p-4 text-sm text-danger">
-          Este certificado foi revogado{c.revogado_motivo ? `: ${c.revogado_motivo}` : '.'}
+      <ul className="mt-6 space-y-3">
+        {certificados.map((c) => (
+          <li key={c.id}>
+            <Link
+              href={`/certificados/${c.id}`}
+              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
+            >
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft">
+                  <Award className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate font-display font-semibold text-ink">{c.curso_titulo}</p>
+                  <p className="mt-0.5 text-xs text-subtle">
+                    {c.carga_horaria}h · código {c.codigo}
+                    {c.revogado_em && ' · revogado'}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-subtle" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {certificados.length === 0 && (
+        <div className="mt-6 rounded-lg border border-dashed border-border-strong p-8 text-center">
+          <p className="text-sm text-muted">Nenhum certificado ainda.</p>
+          <Link href="/meus-cursos" className="mt-2 inline-block text-sm font-medium text-primary hover:underline">
+            Ver meus cursos
+          </Link>
         </div>
       )}
-
-      <div className="space-y-6">
-        <div className="pagina overflow-hidden rounded-lg border border-border shadow-sm">
-          <CertificadoFrente c={dados} instituicao={cfg?.instituicao_nome ?? 'A UFR'} />
-        </div>
-        <div className="pagina overflow-hidden rounded-lg border border-border shadow-sm">
-          <CertificadoVerso c={dados} qrDataUrl={qr} urlValidacao={urlValidacao} />
-        </div>
-      </div>
     </div>
   )
 }
