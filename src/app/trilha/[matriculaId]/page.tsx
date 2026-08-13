@@ -12,10 +12,17 @@ export default async function TrilhaPage({
   const { matriculaId } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) notFound()
+
+  // Filtro explícito por dono. Não basta o RLS: a política matricula_admin
+  // (e_admin()) soma por OR com matricula_propria, então uma conta admin
+  // abriria a trilha de qualquer aluno pela URL.
   const { data: matricula } = await supabase
     .from('matricula')
     .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
     .eq('id', matriculaId)
+    .eq('usuario_id', user.id)
     .single()
 
   if (!matricula) notFound()
