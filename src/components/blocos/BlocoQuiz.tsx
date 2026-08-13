@@ -8,7 +8,9 @@ import type { PropsBloco } from './BlocoRenderer'
 
 type Detalhe = {
   id: string
-  correta: boolean
+  // Opcional de propósito: enquanto sobrar tentativa, o servidor não revela
+  // acerto/erro por questão. Ausente NÃO é o mesmo que false.
+  correta?: boolean | null
   gabarito?: string | boolean | string[] | null
   feedback?: string | null
 }
@@ -71,18 +73,19 @@ export default function BlocoQuiz({ bloco, matriculaId, estado, onConcluir }: Pr
       <ol className="space-y-6">
         {quiz.questoes.map((q, i) => {
           const d = detalhePorQuestao.get(q.id)
-          const cor = !d
+          const revelado = d != null && d.correta != null
+          const cor = !revelado
             ? 'border-border'
-            : d.correta
+            : d!.correta
               ? 'border-primary bg-primary-soft/40'
               : 'border-danger bg-danger-soft/40'
 
           return (
             <li key={q.id} className={`rounded-lg border p-4 ${cor}`}>
               <div className="flex items-start gap-2">
-                {d && (
+                {revelado && (
                   <span className="mt-0.5 shrink-0">
-                    {d.correta ? (
+                    {d!.correta ? (
                       <CheckCircle2 className="h-4 w-4 text-primary" />
                     ) : (
                       <XCircle className="h-4 w-4 text-danger" />
@@ -147,7 +150,7 @@ export default function BlocoQuiz({ bloco, matriculaId, estado, onConcluir }: Pr
                 </div>
               )}
 
-              {d && !d.correta && gabaritoTexto(d, q.tipo) && (
+              {revelado && !d!.correta && gabaritoTexto(d!, q.tipo) && (
                 <p className="mt-3 border-l-2 border-primary pl-3 text-sm text-ink">
                   <span className="font-medium">Resposta correta:</span> {gabaritoTexto(d, q.tipo)}
                 </p>
@@ -197,7 +200,8 @@ export default function BlocoQuiz({ bloco, matriculaId, estado, onConcluir }: Pr
           )}
           {!resultado.mostrouGabarito && !resultado.aprovado && (
             <p className="mt-1 text-xs">
-              As questões erradas estão marcadas em vermelho. O gabarito é liberado após a aprovação.
+              A devolutiva por questão é liberada quando você for aprovado ou usar a
+              última tentativa.
             </p>
           )}
         </div>
