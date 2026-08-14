@@ -1,6 +1,8 @@
-import { Clock, MapPin, Users } from 'lucide-react'
+import Link from 'next/link'
+import { Clock, MapPin, Users, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { inscrever } from './actions'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +24,8 @@ type CursoRow = {
   modalidade: 'hibrido' | 'online'
   turma: TurmaRow[]
 }
+
+type MinhaMatricula = { id: string; turma_id: string }
 
 type VagaRow = {
   turma_id: string
@@ -59,9 +63,31 @@ export default async function CursosPage({
   // outras pessoas, que o RLS esconde — e deve esconder. A função devolve só o
   // agregado. Se a chamada falhar, a lista ainda renderiza: o banco continua
   // sendo a autoridade sobre quem pode se inscrever, esta tela só antecipa.
-  const { data: vagasData } = await supabase.rpc('turmas_abertas')
+  //
+  // As matrículas do próprio usuário são consulta separada e com filtro
+  // explícito por dono: a política matricula_admin (e_admin()) soma por OR com
+  // matricula_propria, então sem o .eq() uma conta de coordenação veria as
+  // matrículas de todo mundo e o catálogo diria "você já está inscrito" em
+  // curso nenhum dela. É o padrão da seção 3 do ESTADO_DO_PROJETO.
+  const usuario = await sessaoAtual()
+
+  const [{ data: vagasData }, { data: minhas }] = await Promise.all([
+    supabase.rpc('turmas_abertas'),
+    usuario
+      ? supabase
+          .from('matricula')
+          .select('id, turma_id')
+          .eq('usuario_id', usuario.id)
+      : Promise.resolve({ data: [] as MinhaMatricula[] }),
+  ])
+
   const vagas = new Map(
     ((vagasData ?? []) as VagaRow[]).map((v) => [v.turma_id, v])
+  )
+
+  // turma_id -> matricula_id, para o botão poder linkar direto para a trilha
+  const inscrito = new Map(
+    ((minhas ?? []) as MinhaMatricula[]).map((m) => [m.turma_id, m.id])
   )
 
   const cursos = (data ?? []) as CursoRow[]
@@ -104,6 +130,37 @@ export default async function CursosPage({
               const v = vagas.get(t.id)
               const aberta = v?.aberta ?? true
               const prazo = dataBR(t.inscricoes_ate)
+              const minhaMatricula = inscrito.get(t.id)
+
+              // Já matriculado tem precedência sobre turma fechada: quem entrou
+              // não perde o acesso quando a inscrição encerra. Mesma regra que
+              // a 0013 aplica no banco, agora refletida na tela.
+              if (minhaMatricula) {
+                return (
+                  <div
+                    key={t.id}
+                    className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
+                  >
+                    <Link
+                      href={`/trilha/${minhaMatricula}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Continuar curso
+                    </Link>
+                    <span className="flex items-center gap-1.5 text-sm text-muted">
+                      {t.tipo === 'continua' ? (
+                        'Você já está inscrito'
+                      ) : (
+                        <>
+                          <MapPin className="h-3.5 w-3.5" />
+                          Turma {t.identificador} · você já está inscrito
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )
+              }
 
               return (
                 <form
