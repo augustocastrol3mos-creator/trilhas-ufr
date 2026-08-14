@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Clock, MapPin, Users, CheckCircle2 } from 'lucide-react'
+import { Clock, MapPin, Users, CheckCircle2, Award } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { inscrever } from './actions'
 import { sessaoAtual } from '@/lib/auth'
@@ -25,7 +25,7 @@ type CursoRow = {
   turma: TurmaRow[]
 }
 
-type MinhaMatricula = { id: string; turma_id: string }
+type MinhaMatricula = { id: string; turma_id: string; status: string }
 
 type VagaRow = {
   turma_id: string
@@ -76,7 +76,7 @@ export default async function CursosPage({
     usuario
       ? supabase
           .from('matricula')
-          .select('id, turma_id')
+          .select('id, turma_id, status')
           .eq('usuario_id', usuario.id)
       : Promise.resolve({ data: [] as MinhaMatricula[] }),
   ])
@@ -91,6 +91,19 @@ export default async function CursosPage({
   )
 
   const cursos = (data ?? []) as CursoRow[]
+
+  // Cursos já concluídos. A trava real está na 0018 (inscrever recusa), aqui é
+  // só antecipar. O mapa turma -> curso sai dos dados que a página já carregou,
+  // então não custa consulta nenhuma.
+  const cursoDaTurma = new Map<string, string>()
+  for (const c of cursos) for (const t of c.turma) cursoDaTurma.set(t.id, c.id)
+
+  const concluidos = new Set(
+    ((minhas ?? []) as MinhaMatricula[])
+      .filter((m) => m.status === 'aprovado' || m.status === 'certificado_emitido')
+      .map((m) => cursoDaTurma.get(m.turma_id))
+      .filter((x): x is string => Boolean(x))
+  )
 
   return (
     <div>
@@ -131,6 +144,7 @@ export default async function CursosPage({
               const aberta = v?.aberta ?? true
               const prazo = dataBR(t.inscricoes_ate)
               const minhaMatricula = inscrito.get(t.id)
+              const jaConcluiu = concluidos.has(c.id)
 
               // Já matriculado tem precedência sobre turma fechada: quem entrou
               // não perde o acesso quando a inscrição encerra. Mesma regra que
@@ -158,6 +172,30 @@ export default async function CursosPage({
                         </>
                       )}
                     </span>
+                  </div>
+                )
+              }
+
+              // Concluiu o curso em outra turma: não entra de novo. A regra
+              // vem depois do "já matriculado" de propósito — quem foi
+              // aprovado NESTA turma continua vendo "Continuar curso" e
+              // mantendo acesso à própria trilha e ao próprio certificado.
+              if (jaConcluiu) {
+                return (
+                  <div
+                    key={t.id}
+                    className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
+                  >
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-muted">
+                      <Award className="h-3.5 w-3.5" />
+                      Curso já concluído
+                    </span>
+                    <Link
+                      href="/certificados"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Ver meu certificado
+                    </Link>
                   </div>
                 )
               }
