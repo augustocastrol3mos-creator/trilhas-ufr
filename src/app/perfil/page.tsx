@@ -1,13 +1,14 @@
 import { revalidatePath } from 'next/cache'
 import { AlertTriangle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 async function salvar(formData: FormData) {
   'use server'
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
   if (!user) return
 
   await supabase
@@ -21,7 +22,7 @@ async function salvar(formData: FormData) {
 
 export default async function PerfilPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
   const { data: perfil } = await supabase
     .from('usuario')
     .select('nome_completo, email')

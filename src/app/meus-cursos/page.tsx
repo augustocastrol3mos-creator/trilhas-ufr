@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronRight, UserCheck, UserX } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +16,7 @@ const STATUS: Record<string, { rotulo: string; classe: string }> = {
 
 export default async function MeusCursosPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
 
   const { data, error } = await supabase
     .from('matricula')

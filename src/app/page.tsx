@@ -3,12 +3,13 @@ import { ArrowRight, Award, Clock, MapPin, Route, ShieldCheck, Users } from 'luc
 import { createClient } from '@/lib/supabase/server'
 import AcessoHero from '@/components/AcessoHero'
 import GrafismoHero from '@/components/GrafismoHero'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
 
   if (user) return <HomeAutenticada />
 

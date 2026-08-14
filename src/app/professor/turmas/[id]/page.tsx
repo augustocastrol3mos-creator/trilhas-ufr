@@ -4,6 +4,7 @@ import { ArrowLeft, BarChart3, ClipboardCheck } from 'lucide-react'
 import ChamadaPresenca from './ChamadaPresenca'
 import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,10 +28,10 @@ export default async function TurmaPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: perfil } = await supabase
-    .from('usuario').select('papel').eq('id', user?.id ?? '').single()
-  const ehAdmin = perfil?.papel === 'admin'
+  // sessaoAtual já resolveu getUser + papel na renderização do layout;
+  // aqui é reaproveitamento em memória, custo zero de rede.
+  const sessao = await sessaoAtual()
+  const ehAdmin = sessao?.papel === 'admin'
 
   const { data: turma } = await supabase
     .from('turma')

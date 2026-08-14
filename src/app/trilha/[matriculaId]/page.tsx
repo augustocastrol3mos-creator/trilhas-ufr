@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, CalendarClock, Check, Clock, Lock, PlayCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import type { ModuloTrilha } from '@/lib/blocos/schemas'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,22 +13,28 @@ export default async function TrilhaPage({
   const { matriculaId } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
   if (!user) notFound()
 
   // Filtro explícito por dono. Não basta o RLS: a política matricula_admin
   // (e_admin()) soma por OR com matricula_propria, então uma conta admin
   // abriria a trilha de qualquer aluno pela URL.
-  const { data: matricula } = await supabase
-    .from('matricula')
-    .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
-    .eq('id', matriculaId)
-    .eq('usuario_id', user.id)
-    .single()
+  // As duas são independentes: ambas só precisam do matriculaId. Em série
+  // custavam duas viagens de rede; em paralelo, uma. Não há risco de vazamento
+  // por disparar a RPC antes da checagem de dono — modulos_trilha valida
+  // e_dono_matricula por dentro, e o resultado é descartado no notFound().
+  const [{ data: matricula }, { data, error }] = await Promise.all([
+    supabase
+      .from('matricula')
+      .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
+      .eq('id', matriculaId)
+      .eq('usuario_id', user.id)
+      .single(),
+    supabase.rpc('modulos_trilha', { p_matricula: matriculaId }),
+  ])
 
   if (!matricula) notFound()
 
-  const { data, error } = await supabase.rpc('modulos_trilha', { p_matricula: matriculaId })
   if (error) {
     return (
       <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">

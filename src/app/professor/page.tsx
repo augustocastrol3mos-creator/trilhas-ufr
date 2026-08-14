@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { ChevronRight, Users, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ProfessorPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
 
   const { data: turmas, error } = await supabase
     .from('turma')

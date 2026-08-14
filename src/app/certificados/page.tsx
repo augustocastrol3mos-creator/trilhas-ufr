@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { Award, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CertificadosPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
 
   const { data, error } = await supabase
     .from('certificado')

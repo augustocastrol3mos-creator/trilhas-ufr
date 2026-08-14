@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/AppShell'
 import PublicShell from '@/components/PublicShell'
 import './globals.css'
+import { sessaoAtual } from '@/lib/auth'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const plexSans = IBM_Plex_Sans({
@@ -19,22 +20,8 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  let papel: string | null = null
-  if (user) {
-    const { data } = await supabase.from('usuario').select('papel').eq('id', user.id).single()
-    papel = data?.papel ?? 'aluno'
-  }
-
-  const usuario = user
-    ? {
-        nome: (user.user_metadata?.nome_completo as string) ?? '',
-        email: user.email ?? '',
-        papel: papel ?? 'aluno',
-      }
-    : null
+  // Uma chamada só, compartilhada com todas as páginas desta renderização.
+  const usuario = await sessaoAtual()
 
   return (
     <html lang="pt-BR" className={`${inter.variable} ${plexSans.variable}`}>

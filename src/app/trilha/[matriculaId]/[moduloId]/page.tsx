@@ -12,16 +12,19 @@ export default async function ModuloPage({
   const { matriculaId, moduloId } = await params
   const supabase = await createClient()
 
-  const { data: trilha } = await supabase.rpc('modulos_trilha', { p_matricula: matriculaId })
+  // modulo_conteudo não depende do resultado de modulos_trilha — a primeira
+  // serve só para achar o módulo seguinte na navegação. Independentes, vão
+  // juntas.
+  const [{ data: trilha }, { data, error }] = await Promise.all([
+    supabase.rpc('modulos_trilha', { p_matricula: matriculaId }),
+    supabase.rpc('modulo_conteudo', { p_matricula: matriculaId, p_modulo: moduloId }),
+  ])
+
   const modulos = (trilha ?? []) as ModuloTrilha[]
   const atual = modulos.find((m) => m.moduloId === moduloId)
   const proximo = modulos.find((m) => atual && m.ordem === atual.ordem + 1) ?? null
   const ultimoModulo = Boolean(atual && atual.ordem === modulos.length)
 
-  const { data, error } = await supabase.rpc('modulo_conteudo', {
-    p_matricula: matriculaId,
-    p_modulo: moduloId,
-  })
 
   if (error) {
     return (

@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/server'
 import { CertificadoFrente, CertificadoVerso, type CertificadoDados } from '@/components/Certificado'
 import BotaoImprimir from './BotaoImprimir'
+import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,10 +13,15 @@ export default async function CertificadoPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await sessaoAtual()
   if (!user) notFound()
 
-  const { data: c } = await supabase.from('certificado').select('*').eq('id', id).single()
+  // certificado e configuracao são independentes — juntas
+  const [{ data: c }, { data: cfg }] = await Promise.all([
+    supabase.from('certificado').select('*').eq('id', id).single(),
+    supabase.from('configuracao').select('instituicao_nome, url_base').single(),
+  ])
+
   if (!c) notFound()
 
   // Mesmo motivo da trilha: certificado_admin (e_admin()) soma por OR com
@@ -28,11 +34,6 @@ export default async function CertificadoPage({
     .maybeSingle()
 
   if (!minha) notFound()
-
-  const { data: cfg } = await supabase
-    .from('configuracao')
-    .select('instituicao_nome, url_base')
-    .single()
 
   const base = cfg?.url_base ?? 'http://localhost:3000'
   const urlValidacao = `${base}/validar/${c.codigo}`
