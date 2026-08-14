@@ -34,6 +34,15 @@ export default async function MeusCursosPage() {
 
   const matriculas = (data ?? []) as any[]
 
+  // O filtro por dono está DENTRO da RPC (where usuario_id = auth.uid()), para
+  // nenhuma tela precisar lembrar de aplicá-lo — as policies de presenca
+  // incluem "admin vê tudo".
+  const { data: resumo } = await supabase.rpc('meu_resumo_presenca')
+  const presencas = (resumo ?? {}) as Record<
+    string,
+    { total: number; presentes: number; minima: number }
+  >
+
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">Meus cursos</h1>
@@ -61,13 +70,21 @@ export default async function MeusCursosPage() {
 
                   {/* Presença: o elo da cadeia que o aluno nunca via. Só faz
                       sentido em curso híbrido — em online não há encontro. */}
+                  {m.turma?.curso?.modalidade === 'hibrido' && presencas[m.id]?.total > 0 && (
+                    <p className="mt-2 text-xs text-muted">
+                      Presença em {presencas[m.id].presentes} de {presencas[m.id].total}{' '}
+                      {presencas[m.id].total === 1 ? 'encontro' : 'encontros'} · mínimo{' '}
+                      {presencas[m.id].minima}%
+                    </p>
+                  )}
+
                   {m.turma?.curso?.modalidade === 'hibrido' && (
                     <p className="mt-2 flex items-center gap-1.5 text-xs">
                       {m.presenca_confirmada ? (
                         <>
                           <UserCheck className="h-3.5 w-3.5 text-primary" />
                           <span className="text-primary-dark">
-                            Presença confirmada
+                            Presença suficiente para o certificado
                             {m.presenca_em
                               ? ` em ${new Date(m.presenca_em).toLocaleDateString('pt-BR')}`
                               : ''}
@@ -77,7 +94,7 @@ export default async function MeusCursosPage() {
                         <>
                           <UserX className="h-3.5 w-3.5 text-muted" />
                           <span className="text-muted">
-                            Presença ainda não registrada
+                            Presença ainda insuficiente
                             {m.turma?.encontro_data
                               ? ` · encontro em ${new Date(m.turma.encontro_data).toLocaleDateString('pt-BR')}`
                               : ''}

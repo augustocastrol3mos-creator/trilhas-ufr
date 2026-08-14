@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, BarChart3, ClipboardCheck } from 'lucide-react'
-import ChamadaPresenca from './ChamadaPresenca'
+import { ArrowLeft, BarChart3, ClipboardCheck, CalendarCheck } from 'lucide-react'
 import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
@@ -72,6 +71,15 @@ export default async function TurmaPage({
         </div>
 
         <div className="flex flex-wrap gap-3">
+        {(turma as any).curso?.modalidade === 'hibrido' && (
+          <Link
+            href={`/professor/turmas/${id}/encontros`}
+            className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-ink hover:border-primary hover:text-primary"
+          >
+            <CalendarCheck className="h-4 w-4" />
+            Encontros e chamada
+          </Link>
+        )}
         <Link
           href={`/professor/turmas/${id}/analise`}
           className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-ink hover:border-primary hover:text-primary"
@@ -90,17 +98,6 @@ export default async function TurmaPage({
         )}
         </div>
       </div>
-
-      {!encerrada && (turma as any).curso?.modalidade === 'hibrido' && alunos.length > 0 && (
-        <ChamadaPresenca
-          turmaId={id}
-          alunos={alunos.map((a) => ({
-            matriculaId: a.matriculaId,
-            nome: a.nome,
-            presenca: Boolean((a as any).presenca),
-          }))}
-        />
-      )}
 
       {encerrada && ehAdmin && <ReabrirTurma turmaId={id} />}
 
