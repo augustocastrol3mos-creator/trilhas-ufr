@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { ROTULOS_TIPO } from '@/lib/blocos/defaults'
 import PainelCurso from './PainelCurso'
@@ -39,10 +39,20 @@ export default async function EditorCursoPage({
 
   return (
     <div>
-      <Link href="/professor/cursos" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Meus cursos
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link href="/professor/cursos" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Meus cursos
+        </Link>
+
+        <Link
+          href={`/professor/cursos/${id}/turmas`}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-3 py-1.5 text-sm font-medium text-ink hover:bg-canvas"
+        >
+          <Users className="h-3.5 w-3.5" />
+          Turmas
+        </Link>
+      </div>
 
       <PainelCurso
         curso={curso as any}

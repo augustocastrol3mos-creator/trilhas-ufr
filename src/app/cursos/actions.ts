@@ -11,7 +11,13 @@ export async function inscrever(formData: FormData) {
   if (!user) redirect('/login?proximo=/cursos')
 
   const { data, error } = await supabase.rpc('inscrever', { p_turma: turmaId })
-  if (error) throw new Error(error.message)
+
+  // A regra mora no banco (0013). Aqui só traduzimos a recusa em algo legível:
+  // throw new Error derrubava a página inteira para o aluno que clicasse numa
+  // turma lotada ou fora do prazo.
+  if (error) {
+    redirect(`/cursos?erro=${encodeURIComponent(error.message)}`)
+  }
 
   redirect(`/trilha/${data}`)
 }
