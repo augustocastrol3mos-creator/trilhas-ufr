@@ -16,6 +16,19 @@ export default async function AdminCursosPage() {
   const mapa = new Map((autores ?? []).map((a) => [a.id, a]))
 
   const lista = cursos ?? []
+
+  // Diagnóstico de exclusão por curso: quantas turmas, matrículas e
+  // certificados existem. A tela precisa saber ANTES de mostrar o botão se o
+  // curso é elegível — e, quando não é, por quê. Em paralelo porque são
+  // independentes entre si; a lista de cursos da coordenação é curta.
+  const diagnosticos = new Map<string, any>(
+    await Promise.all(
+      lista.map(async (c) => {
+        const { data } = await supabase.rpc('pode_excluir_curso', { p_curso: c.id })
+        return [c.id, data] as [string, any]
+      })
+    )
+  )
   const emAnalise = lista.filter((c) => c.status === 'em_analise')
   const resto = lista.filter((c) => c.status !== 'em_analise')
 
@@ -39,7 +52,7 @@ export default async function AdminCursosPage() {
           </h2>
           <ul className="mt-3 space-y-3">
             {emAnalise.map((c) => (
-              <CardCurso key={c.id} curso={c as any} autor={mapa.get(c.autor_id!) as any} />
+              <CardCurso key={c.id} curso={c as any} autor={mapa.get(c.autor_id!) as any} diagnostico={diagnosticos.get(c.id)} />
             ))}
           </ul>
         </>
@@ -48,7 +61,7 @@ export default async function AdminCursosPage() {
       <h2 className="mt-8 font-display text-lg font-semibold text-ink">Todos os cursos</h2>
       <ul className="mt-3 space-y-3">
         {resto.map((c) => (
-          <CardCurso key={c.id} curso={c as any} autor={mapa.get(c.autor_id!) as any} />
+          <CardCurso key={c.id} curso={c as any} autor={mapa.get(c.autor_id!) as any} diagnostico={diagnosticos.get(c.id)} />
         ))}
       </ul>
     </div>

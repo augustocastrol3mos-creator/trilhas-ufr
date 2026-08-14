@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import { autorizarPublicacao } from '../actions'
+import GestaoCurso from './GestaoCurso'
 
 export default function CardCurso({
-  curso, autor,
+  curso, autor, diagnostico,
 }: {
   curso: { id: string; titulo: string; descricao: string | null; status: string; modalidade: string; carga_horaria: number }
   autor?: { nome_completo: string; email: string }
+  diagnostico?: { pode: boolean; turmas: number; matriculas: number; certificados: number }
 }) {
   const router = useRouter()
   const [motivo, setMotivo] = useState('')
@@ -92,6 +94,8 @@ export default function CardCurso({
       )}
 
       {erro && <p className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{erro}</p>}
+
+      {diagnostico && <GestaoCurso curso={curso} diagnostico={diagnostico} />}
     </li>
   )
 }

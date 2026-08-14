@@ -43,7 +43,11 @@ export default async function MeusCursosProfessorPage() {
               <div className="min-w-0">
                 <p className="truncate font-display font-semibold text-ink">{c.titulo}</p>
                 <div className="mt-1.5 flex items-center gap-2 text-xs">
-                  {c.status === 'publicado' ? (
+                  {c.status === 'arquivado' ? (
+                    <span className="rounded-full border border-border-strong px-2.5 py-0.5 text-xs font-medium text-muted">
+                      arquivado
+                    </span>
+                  ) : c.status === 'publicado' ? (
                     <span className="rounded-full bg-primary px-2 py-0.5 font-medium text-white">publicado</span>
                   ) : (
                     <span className="rounded-full bg-accent-soft px-2 py-0.5 font-medium text-accent">rascunho</span>
