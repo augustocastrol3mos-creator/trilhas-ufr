@@ -133,7 +133,7 @@ export default async function CursosPage({
                     )}
                   </span>
 
-                  {v?.restantes != null && (
+                  {v?.restantes != null && aberta && (
                     <span className="flex items-center gap-1.5 text-xs text-muted">
                       <Users className="h-3.5 w-3.5" />
                       {v.restantes > 0

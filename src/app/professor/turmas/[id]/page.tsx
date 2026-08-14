@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, BarChart3, ClipboardCheck } from 'lucide-react'
+import ChamadaPresenca from './ChamadaPresenca'
 import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -88,6 +89,17 @@ export default async function TurmaPage({
         )}
         </div>
       </div>
+
+      {!encerrada && (turma as any).curso?.modalidade === 'hibrido' && alunos.length > 0 && (
+        <ChamadaPresenca
+          turmaId={id}
+          alunos={alunos.map((a) => ({
+            matriculaId: a.matriculaId,
+            nome: a.nome,
+            presenca: Boolean((a as any).presenca),
+          }))}
+        />
+      )}
 
       {encerrada && ehAdmin && <ReabrirTurma turmaId={id} />}
 

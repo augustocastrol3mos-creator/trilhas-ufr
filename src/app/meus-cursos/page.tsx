@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, UserCheck, UserX } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export default async function MeusCursosPage() {
 
   const { data, error } = await supabase
     .from('matricula')
-    .select('id, status, turma(identificador, curso(titulo, carga_horaria, modalidade))')
+    .select('id, status, presenca_confirmada, presenca_em, turma(identificador, encontro_data, curso(titulo, carga_horaria, modalidade))')
     .eq('usuario_id', user?.id ?? '')
     .order('criado_em', { ascending: false })
 
@@ -55,8 +55,36 @@ export default async function MeusCursosPage() {
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${status.classe}`}>
                       {status.rotulo}
                     </span>
-                    <span className="text-xs text-subtle">{m.turma?.curso?.carga_horaria}h</span>
+                    <span className="text-xs text-muted">{m.turma?.curso?.carga_horaria}h</span>
                   </div>
+
+                  {/* Presença: o elo da cadeia que o aluno nunca via. Só faz
+                      sentido em curso híbrido — em online não há encontro. */}
+                  {m.turma?.curso?.modalidade === 'hibrido' && (
+                    <p className="mt-2 flex items-center gap-1.5 text-xs">
+                      {m.presenca_confirmada ? (
+                        <>
+                          <UserCheck className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-primary-dark">
+                            Presença confirmada
+                            {m.presenca_em
+                              ? ` em ${new Date(m.presenca_em).toLocaleDateString('pt-BR')}`
+                              : ''}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <UserX className="h-3.5 w-3.5 text-muted" />
+                          <span className="text-muted">
+                            Presença ainda não registrada
+                            {m.turma?.encontro_data
+                              ? ` · encontro em ${new Date(m.turma.encontro_data).toLocaleDateString('pt-BR')}`
+                              : ''}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  )}
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-subtle" />
               </Link>
