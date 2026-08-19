@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { sair } from '@/app/login/actions'
 import Marca from './Marca'
+import Avisos, { type Aviso } from './Avisos'
 
 type Usuario = { nome: string; email: string; papel: string } | null
 
@@ -20,8 +21,8 @@ const NAV = [
 ]
 
 export default function AppShell({
-  usuario, children,
-}: { usuario: Usuario; children: React.ReactNode }) {
+  usuario, avisos = [], children,
+}: { usuario: Usuario; avisos?: Aviso[]; children: React.ReactNode }) {
   const pathname = usePathname()
   const [aberto, setAberto] = useState(false)
 
@@ -109,7 +110,10 @@ export default function AppShell({
 
       {/* Conteúdo */}
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12">{children}</div>
+        <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12">
+          <Avisos avisos={avisos} />
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, BookOpen, ScrollText, Tags, Users, Presentation } from 'lucide-react'
+import { Award, BookOpen, ScrollText, Tags, Megaphone, Users, Presentation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -29,6 +29,8 @@ export default async function AdminPage() {
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: (v as any).categorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
+    { href: '/admin/avisos', Icon: Megaphone, titulo: 'Avisos', valor: (v as any).avisos ?? 0,
+      detalhe: 'mensagens no topo das telas de quem está logado' },
     { href: '/admin/auditoria', Icon: ScrollText, titulo: 'Auditoria', valor: v.ajustesDeNota,
       detalhe: `${v.decisoesDivergentes} decisões divergentes` },
   ]

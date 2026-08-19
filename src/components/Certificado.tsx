@@ -45,17 +45,28 @@ function Fita({ className = '' }: { className?: string }) {
 
 function Cabecalho({ instituicao }: { instituicao: string }) {
   return (
-    <div className="flex items-start justify-between gap-6">
-      <div className="flex items-center gap-3.5">
+    /* `items-end`, não `items-center`: o logotipo simplificado da UFR tem os
+       triângulos ACIMA da palavra "UFR", então centralizar os blocos deixa a
+       palavra ~9px mais baixa que o TRILHAS e que o nome da instituição.
+       Alinhando pela base, as três linhas de base coincidem. É a mesma
+       correção aplicada no componente Marca. */
+    <div className="flex items-end justify-between gap-6">
+      <div className="flex items-end gap-3.5">
         {/* PNG oficial, nunca recriado nem recolorido. O nome por extenso é
             texto separado, fora da área de proteção do logotipo. */}
-        <Image src="/logo-ufr.png" alt="" width={70} height={40} className="h-10 w-auto" />
-        <span className="border-l border-border pl-3.5 text-[10px] font-medium uppercase leading-[1.35] tracking-wide text-muted">
+        <Image src="/logo-ufr.png" alt="" width={74} height={42} className="h-[42px] w-auto" />
+        <span className="mb-0.5 border-l border-border pl-3.5 text-[10px] font-medium uppercase leading-[1.35] tracking-wide text-muted">
           {instituicao}
         </span>
       </div>
 
-      <Image src="/logo-trilhas.png" alt="" width={95} height={21} className="h-[21px] w-auto opacity-90" />
+      <Image
+        src="/logo-trilhas.png"
+        alt=""
+        width={100}
+        height={22}
+        className="mb-0.5 h-[22px] w-auto opacity-90"
+      />
     </div>
   )
 }

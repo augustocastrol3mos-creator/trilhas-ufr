@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Award, Clock, MapPin, Route, ShieldCheck, Users } from 'lucide-react'
+import { ArrowRight, Award, Clock, ClipboardCheck, FileCheck2, MapPin, Route, ShieldCheck, Target, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import AcessoHero from '@/components/AcessoHero'
 import GrafismoHero from '@/components/GrafismoHero'
@@ -103,6 +103,52 @@ E ele só é emitido quando a trilha foi percorrida, a avaliação foi feita e �
           </div>
         </div>
       </section>
+
+      {/* ---------- Gestão de competências ---------- */}
+      <section className="border-b border-border bg-surface">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+              Gestão de competências
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-semibold leading-tight text-ink">
+              Horas contam tempo. Competências contam o que você sabe fazer
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              O histórico de atividades complementares costuma registrar quantidade: tantas
+              horas, tantos certificados. É o que a integralização exige, mas não é o que
+              alguém pergunta numa entrevista, num processo seletivo de estágio ou numa
+              banca. Lá a pergunta é outra — o que você aprendeu a fazer, e como se
+              comprova isso.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              Cada curso aqui declara as competências que desenvolve e as registra no
+              certificado junto com a trilha percorrida e a avaliação prestada. Ao longo da
+              graduação, isso deixa de ser uma pilha de PDFs e vira um percurso legível:
+              onde você foi, o que praticou, o que ficou comprovado.
+            </p>
+          </div>
+
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+            <Pilar
+              Icon={Target}
+              titulo="Escolher com intenção"
+              texto="Os cursos são organizados por categoria, para você montar um percurso coerente em vez de somar o que aparecer pela frente."
+            />
+            <Pilar
+              Icon={ClipboardCheck}
+              titulo="Praticar e ser avaliado"
+              texto="A competência não é declarada, é exercida: a trilha tem avaliação, e nos cursos híbridos um encontro presencial que confirma o aprendizado."
+            />
+            <Pilar
+              Icon={FileCheck2}
+              titulo="Comprovar sem depender de ninguém"
+              texto="O certificado registra curso, carga horária e desempenho, com código público. Quem recebe confere na origem, em segundos."
+            />
+          </ul>
+        </div>
+      </section>
+
 
       {/* ---------- Como funciona ---------- */}
       <section className="border-b border-border bg-canvas">
