@@ -156,8 +156,9 @@ select nome, aplicada_em from migration_aplicada order by nome;
 | `instrutor` | criar/editar os próprios cursos, abrir turmas neles, chamada, fechar turma |
 | `admin` (coordenação) | tudo do instrutor em qualquer curso, conceder papéis, autorizar publicação, revogar certificado, reabrir turma, arquivar/excluir curso, auditoria |
 
-Contas de teste (senha `12345678`): `aluno@ufr.edu.br`, `professor@ufr.edu.br`,
-`admin@ufr.edu.br`.
+Contas de teste existem em produção, mas **credenciais não entram neste
+arquivo**: o repositório é público. Elas ficam no gerenciador de senhas de
+Augusto. Se você está lendo isto e precisa de acesso, peça — não procure aqui.
 
 **Confirmação de e-mail está desligada** no Supabase para facilitar teste. Como
 `nome_completo` vem do metadata do cadastro, o nome impresso no certificado é

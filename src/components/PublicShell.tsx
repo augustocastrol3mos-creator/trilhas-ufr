@@ -53,15 +53,15 @@ export default function PublicShell({ children }: { children: React.ReactNode })
               <ItemLink href="/validar">Validar certificado</ItemLink>
               <ItemLink href="/certificados">Meus certificados</ItemLink>
             </Coluna>
-            <Coluna titulo="Extensão">
+            <Coluna titulo="Sobre">
               <ItemTexto>Cursos ministrados por docentes da UFR e convidados</ItemTexto>
-              <ItemTexto>Certificados registrados pela Pró-Reitoria de Extensão</ItemTexto>
+              <ItemTexto>Atividades complementares e cursos de extensão</ItemTexto>
             </Coluna>
           </div>
 
           <div className="mt-10 border-t border-sidebar-border pt-6">
             <p className="text-xs text-sidebar-muted">
-              Universidade Federal de Rondonópolis · Projeto de extensão · Rondonópolis, MT
+              Universidade Federal de Rondonópolis · Rondonópolis, MT
             </p>
           </div>
         </div>

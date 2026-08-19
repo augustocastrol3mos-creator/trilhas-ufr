@@ -14,9 +14,9 @@ const plexSans = IBM_Plex_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Trilhas UFR — cursos de extensão',
+  title: 'Trilhas UFR — atividades complementares e extensão',
   description:
-    'Cursos de extensão da Universidade Federal de Rondonópolis, com trilha de aprendizado e certificado validável.',
+    'Cursos complementares e de extensão da Universidade Federal de Rondonópolis, com trilha de aprendizado e certificado de validação pública.',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

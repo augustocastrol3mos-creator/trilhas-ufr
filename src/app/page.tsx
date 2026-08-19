@@ -30,17 +30,18 @@ export default async function Home() {
           <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
             <div className="min-w-0 flex-1">
               <span className="inline-block rounded-full border border-white/25 px-3 py-1 text-xs font-medium text-white/80">
-                Extensão universitária · UFR
+                Atividades complementares · UFR
               </span>
 
               <h1 className="mt-6 max-w-2xl font-display text-3xl font-semibold leading-[1.15] text-white md:text-[2.75rem]">
-                O conhecimento produzido na universidade, aberto a quem está fora dela
+                Horas complementares que valem, com certificado que se comprova
               </h1>
 
               <p className="mt-5 max-w-xl text-base leading-relaxed text-white/75">
-                Cursos de extensão criados por docentes da UFR e por convidados. Você percorre
-                a trilha no seu ritmo, é avaliado de verdade e recebe um certificado com
-                validação pública.
+                Cursos criados por docentes da UFR para estudantes que precisam integralizar
+                atividades complementares — e abertos também à comunidade. Você percorre a
+                trilha no seu ritmo, é avaliado de verdade e recebe um certificado com código
+                de validação pública.
               </p>
 
               <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-t border-white/15 pt-8">
@@ -57,22 +58,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ---------- O que é extensão ---------- */}
+      {/* ---------- Por que esta plataforma existe ---------- */}
       <section className="border-b border-border bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:gap-16">
             <div>
               <h2 className="font-display text-2xl font-semibold leading-tight text-ink">
-                Extensão é a universidade devolvendo o que produz
+Um certificado só vale se for possível checá-lo
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-muted">
-                Ensino, pesquisa e extensão sustentam a universidade pública. A extensão é a
-                perna que atravessa o muro do campus: leva o que se investiga aqui dentro para
-                quem trabalha, empreende e decide lá fora.
+Certificado de atividade complementar costuma ser um PDF que ninguém confere.
+                Aqui cada documento carrega um código público: a coordenação do seu curso, um
+                empregador ou qualquer pessoa confirma a autenticidade em segundos, sem
+                depender de você.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Esta plataforma existe para que esse caminho não dependa de sala física,
-                horário fixo nem distância até Rondonópolis.
+E ele só é emitido quando a trilha foi percorrida, a avaliação foi feita e — nos
+                cursos híbridos — a presença foi confirmada. Não há atalho.
               </p>
             </div>
 
@@ -85,7 +87,7 @@ export default async function Home() {
               <Pilar
                 Icon={Users}
                 titulo="Quem ensina é quem pesquisa"
-                texto="Os cursos nascem do que professores da UFR e profissionais convidados investigam e praticam."
+                texto="Os cursos nascem do que professores da UFR investigam e praticam, com participação de profissionais convidados."
               />
               <Pilar
                 Icon={Award}
