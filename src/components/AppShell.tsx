@@ -40,10 +40,10 @@ export default function AppShell({
   return (
     <div className="min-h-screen md:flex">
       {/* Topbar mobile */}
-      <div className="no-print flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden">
-        <Marca tema="escuro" compacta />
+      <div className="no-print flex items-center justify-between border-b border-border bg-white px-4 py-3 md:hidden">
+        <Marca compacta />
         <button onClick={() => setAberto((v) => !v)} aria-label="Abrir menu">
-          {aberto ? <X className="h-5 w-5 text-white" /> : <Menu className="h-5 w-5 text-white" />}
+          {aberto ? <X className="h-5 w-5 text-ink" /> : <Menu className="h-5 w-5 text-ink" />}
         </button>
       </div>
 
@@ -55,8 +55,12 @@ export default function AppShell({
         `}
       >
         <div className="flex h-full flex-col md:sticky md:top-0 md:h-screen">
-          <div className="hidden items-center gap-2 border-b border-sidebar-border px-5 py-5 md:flex">
-            <Marca tema="escuro" />
+          {/* Faixa branca do topo: é a área de proteção que o manual da UFR exige
+              para o logotipo colorido sobre fundo escuro. Como banda inteira,
+              ela lê como decisão de layout — o retângulo só em volta da marca
+              lia como remendo. */}
+          <div className="hidden items-center bg-white px-5 py-5 md:flex">
+            <Marca />
           </div>
 
           <nav className="flex-1 space-y-0.5 px-3 py-4">
