@@ -30,7 +30,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let avisos: Aviso[] = []
   if (usuario) {
     const supabase = await createClient()
-    const { data } = await supabase.rpc('meus_avisos')
+    const { data, error } = await supabase.rpc('meus_avisos')
+    // Aviso que falha não deve derrubar o app inteiro — mas falhar em silêncio
+    // esconde o defeito (foi o que aconteceu com a 0025). Registrar no log do
+    // servidor deixa o erro visível nos logs da Vercel sem quebrar a página.
+    if (error) console.error('meus_avisos:', error.message)
     avisos = (data ?? []) as Aviso[]
   }
 

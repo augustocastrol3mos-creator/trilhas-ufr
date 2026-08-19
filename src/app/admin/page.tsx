@@ -9,6 +9,13 @@ export default async function AdminPage() {
   const { data } = await supabase.rpc('admin_visao_geral')
   const v = (data ?? {}) as any
 
+  // admin_visao_geral (0007) não conhece avisos, que só existem desde a 0025.
+  // Contar aqui evita reescrever aquela função — que é lida por outras telas —
+  // só para acrescentar um número.
+  const { count: totalAvisos } = await supabase
+    .from('aviso')
+    .select('*', { count: 'exact', head: true })
+
   if (v.erro) {
     return (
       <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
@@ -29,7 +36,7 @@ export default async function AdminPage() {
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: (v as any).categorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
-    { href: '/admin/avisos', Icon: Megaphone, titulo: 'Avisos', valor: (v as any).avisos ?? 0,
+    { href: '/admin/avisos', Icon: Megaphone, titulo: 'Avisos', valor: totalAvisos ?? 0,
       detalhe: 'mensagens no topo das telas de quem está logado' },
     { href: '/admin/auditoria', Icon: ScrollText, titulo: 'Auditoria', valor: v.ajustesDeNota,
       detalhe: `${v.decisoesDivergentes} decisões divergentes` },
