@@ -13,6 +13,7 @@ export async function criarCurso(formData: FormData) {
   const { data, error } = await supabase.rpc('criar_curso', {
     p_dados: {
       titulo: String(formData.get('titulo') ?? ''),
+    categoriaId: String(formData.get('categoriaId') ?? ''),
       descricao: String(formData.get('descricao') ?? ''),
       cargaHoraria: Number(formData.get('cargaHoraria') ?? 20),
       modalidade,

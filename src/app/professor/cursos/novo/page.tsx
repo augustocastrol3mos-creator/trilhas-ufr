@@ -2,8 +2,19 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { criarCurso } from '@/app/professor/cursos/actions'
 import FormNovoCurso from './FormNovoCurso'
+import { createClient } from '@/lib/supabase/server'
 
-export default function NovoCursoPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function NovoCursoPage() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('categoria')
+    .select('id, nome')
+    .eq('ativa', true)
+    .order('ordem')
+  const categorias = data ?? []
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/professor/cursos" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
@@ -18,7 +29,7 @@ export default function NovoCursoPage() {
         que você avalia.
       </p>
 
-      <FormNovoCurso acao={criarCurso} />
+      <FormNovoCurso acao={criarCurso} categorias={categorias} />
     </div>
   )
 }

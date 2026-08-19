@@ -8,7 +8,11 @@ const rotulo = 'block text-sm font-medium text-ink'
 
 export default function FormNovoCurso({
   acao,
-}: { acao: (formData: FormData) => void }) {
+  categorias,
+}: {
+  acao: (formData: FormData) => void
+  categorias: { id: string; nome: string }[]
+}) {
   const [modalidade, setModalidade] = useState<'hibrido' | 'online'>('hibrido')
 
   return (
@@ -36,6 +40,16 @@ export default function FormNovoCurso({
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-5 space-y-5">
+        <label className={rotulo}>
+          Categoria
+          <select name="categoriaId" required className={campo} defaultValue="">
+            <option value="" disabled>Selecione…</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
+          </select>
+        </label>
+
         <label className={rotulo}>
           Título
           <input name="titulo" required maxLength={120} className={campo} />

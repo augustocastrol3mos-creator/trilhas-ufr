@@ -17,6 +17,7 @@ type TurmaRow = {
 
 type CursoRow = {
   id: string
+  categoria: { nome: string; slug: string } | null
   slug: string
   titulo: string
   descricao: string | null
@@ -39,14 +40,14 @@ const dataBR = (d: string | null) =>
 
 export default async function CursosPage({
   searchParams,
-}: { searchParams: Promise<{ erro?: string }> }) {
-  const { erro } = await searchParams
+}: { searchParams: Promise<{ erro?: string; cat?: string }> }) {
+  const { erro, cat } = await searchParams
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('curso')
     .select(
-      'id, slug, titulo, descricao, carga_horaria, modalidade, turma(id, identificador, tipo, encontro_data, encontro_local, inscricoes_ate)'
+      'id, slug, titulo, descricao, carga_horaria, modalidade, categoria_id, categoria(nome, slug), turma(id, identificador, tipo, encontro_data, encontro_local, inscricoes_ate)'
     )
     .eq('status', 'publicado')
     .order('titulo')
@@ -90,7 +91,19 @@ export default async function CursosPage({
     ((minhas ?? []) as MinhaMatricula[]).map((m) => [m.turma_id, m.id])
   )
 
-  const cursos = (data ?? []) as CursoRow[]
+  const todos = (data ?? []) as unknown as CursoRow[]
+
+  // Só entram no filtro as categorias que têm curso publicado: chip que leva a
+  // uma lista vazia é pior do que chip nenhum.
+  const cats = Array.from(
+    new Map(
+      todos.filter((c) => c.categoria).map((c) => [c.categoria!.slug, c.categoria!])
+    ).values()
+  ).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+
+  // Filtro na renderização, não na consulta: a lista é curta, e assim os chips
+  // continuam mostrando todas as categorias disponíveis mesmo com uma ativa.
+  const cursos = cat ? todos.filter((c) => c.categoria?.slug === cat) : todos
 
   // Cursos já concluídos. A trava real está na 0018 (inscrever recusa), aqui é
   // só antecipar. O mapa turma -> curso sai dos dados que a página já carregou,
@@ -116,6 +129,30 @@ export default async function CursosPage({
         </p>
       )}
 
+      {cats.length > 0 && (
+        <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filtrar por categoria">
+          <Link
+            href="/cursos"
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              !cat ? 'bg-primary text-white' : 'border border-border-strong text-muted hover:text-ink'
+            }`}
+          >
+            Todas
+          </Link>
+          {cats.map((k) => (
+            <Link
+              key={k.slug}
+              href={`/cursos?cat=${k.slug}`}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                cat === k.slug ? 'bg-primary text-white' : 'border border-border-strong text-muted hover:text-ink'
+              }`}
+            >
+              {k.nome}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       <ul className="mt-6 space-y-4">
         {cursos.map((c) => (
           <li key={c.id} className="rounded-lg border border-border bg-surface p-5">
@@ -131,6 +168,10 @@ export default async function CursosPage({
                 {c.modalidade === 'online' ? '100% online' : 'híbrido'}
               </span>
             </div>
+
+            {c.categoria && (
+              <p className="mt-2 text-xs font-medium text-primary-dark">{c.categoria.nome}</p>
+            )}
 
             <p className="mt-2 text-sm text-muted">{c.descricao}</p>
 
