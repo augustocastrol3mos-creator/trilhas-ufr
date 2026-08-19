@@ -1,42 +1,23 @@
 import Link from 'next/link'
-import { Clock, MapPin, Users, CheckCircle2, Award } from 'lucide-react'
+import { Clock, ChevronRight, CheckCircle2, Award } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { inscrever } from './actions'
 import { sessaoAtual } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-type TurmaRow = {
-  id: string
-  identificador: string
-  tipo: 'coorte' | 'continua'
-  encontro_data: string | null
-  encontro_local: string | null
-  inscricoes_ate: string | null
-}
-
+type Turma = { id: string }
 type CursoRow = {
   id: string
-  categoria: { nome: string; slug: string } | null
   slug: string
   titulo: string
   descricao: string | null
   carga_horaria: number
   modalidade: 'hibrido' | 'online'
-  turma: TurmaRow[]
+  categoria: { nome: string; slug: string } | null
+  turma: Turma[]
 }
-
 type MinhaMatricula = { id: string; turma_id: string; status: string }
-
-type VagaRow = {
-  turma_id: string
-  ocupadas: number
-  restantes: number | null
-  aberta: boolean
-}
-
-const dataBR = (d: string | null) =>
-  d ? new Date(d + 'T12:00:00').toLocaleDateString('pt-BR') : null
+type VagaRow = { turma_id: string; aberta: boolean; restantes: number | null }
 
 export default async function CursosPage({
   searchParams,
@@ -47,84 +28,83 @@ export default async function CursosPage({
   const { data, error } = await supabase
     .from('curso')
     .select(
-      'id, slug, titulo, descricao, carga_horaria, modalidade, categoria_id, categoria(nome, slug), turma(id, identificador, tipo, encontro_data, encontro_local, inscricoes_ate)'
+      'id, slug, titulo, descricao, carga_horaria, modalidade, categoria(nome, slug), turma(id)'
     )
     .eq('status', 'publicado')
     .order('titulo')
 
   if (error) {
     return (
-      <div className="rounded-lg border border-danger-soft bg-danger-soft/40 p-4 text-sm text-danger">
+      <div className="rounded-lg border border-danger-soft bg-danger-soft p-4 text-sm text-danger">
         {error.message}
       </div>
     )
   }
 
-  // Vagas e prazo vêm de uma RPC porque contar matrículas exige ler linhas de
-  // outras pessoas, que o RLS esconde — e deve esconder. A função devolve só o
-  // agregado. Se a chamada falhar, a lista ainda renderiza: o banco continua
-  // sendo a autoridade sobre quem pode se inscrever, esta tela só antecipa.
-  //
-  // As matrículas do próprio usuário são consulta separada e com filtro
-  // explícito por dono: a política matricula_admin (e_admin()) soma por OR com
-  // matricula_propria, então sem o .eq() uma conta de coordenação veria as
-  // matrículas de todo mundo e o catálogo diria "você já está inscrito" em
-  // curso nenhum dela. É o padrão da seção 3 do ESTADO_DO_PROJETO.
   const usuario = await sessaoAtual()
 
   const [{ data: vagasData }, { data: minhas }] = await Promise.all([
     supabase.rpc('turmas_abertas'),
     usuario
-      ? supabase
-          .from('matricula')
-          .select('id, turma_id, status')
-          .eq('usuario_id', usuario.id)
+      ? supabase.from('matricula').select('id, turma_id, status').eq('usuario_id', usuario.id)
       : Promise.resolve({ data: [] as MinhaMatricula[] }),
   ])
 
-  const vagas = new Map(
-    ((vagasData ?? []) as VagaRow[]).map((v) => [v.turma_id, v])
-  )
-
-  // turma_id -> matricula_id, para o botão poder linkar direto para a trilha
-  const inscrito = new Map(
-    ((minhas ?? []) as MinhaMatricula[]).map((m) => [m.turma_id, m.id])
-  )
-
+  const vagas = new Map(((vagasData ?? []) as VagaRow[]).map((v) => [v.turma_id, v]))
+  const meus = (minhas ?? []) as MinhaMatricula[]
   const todos = (data ?? []) as unknown as CursoRow[]
 
   // Só entram no filtro as categorias que têm curso publicado: chip que leva a
   // uma lista vazia é pior do que chip nenhum.
   const cats = Array.from(
-    new Map(
-      todos.filter((c) => c.categoria).map((c) => [c.categoria!.slug, c.categoria!])
-    ).values()
+    new Map(todos.filter((c) => c.categoria).map((c) => [c.categoria!.slug, c.categoria!])).values()
   ).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 
-  // Filtro na renderização, não na consulta: a lista é curta, e assim os chips
-  // continuam mostrando todas as categorias disponíveis mesmo com uma ativa.
   const cursos = cat ? todos.filter((c) => c.categoria?.slug === cat) : todos
 
-  // Cursos já concluídos. A trava real está na 0018 (inscrever recusa), aqui é
-  // só antecipar. O mapa turma -> curso sai dos dados que a página já carregou,
-  // então não custa consulta nenhuma.
-  const cursoDaTurma = new Map<string, string>()
-  for (const c of cursos) for (const t of c.turma) cursoDaTurma.set(t.id, c.id)
+  // Estado do curso para o aluno, resolvido uma vez por card. A ordem importa:
+  // "já faço" e "já concluí" vêm antes de vaga e prazo, porque quem entrou não
+  // perde acesso quando a inscrição fecha — mesma regra que a 0013 e a 0018
+  // aplicam no banco.
+  function estado(c: CursoRow) {
+    const ids = new Set(c.turma.map((t) => t.id))
+    const minha = meus.find((m) => ids.has(m.turma_id))
 
-  const concluidos = new Set(
-    ((minhas ?? []) as MinhaMatricula[])
-      .filter((m) => m.status === 'aprovado' || m.status === 'certificado_emitido')
-      .map((m) => cursoDaTurma.get(m.turma_id))
-      .filter((x): x is string => Boolean(x))
-  )
+    if (minha && (minha.status === 'aprovado' || minha.status === 'certificado_emitido'))
+      return { rotulo: 'Concluído', tom: 'success', Icon: Award } as const
+    if (minha) return { rotulo: 'Em andamento', tom: 'primary', Icon: CheckCircle2 } as const
+
+    const abertas = c.turma.filter((t) => vagas.get(t.id)?.aberta)
+    if (abertas.length === 0)
+      return { rotulo: 'Sem turma aberta', tom: 'neutro', Icon: null } as const
+
+    const restantes = abertas
+      .map((t) => vagas.get(t.id)?.restantes)
+      .filter((n): n is number => n != null)
+
+    if (restantes.length > 0 && Math.max(...restantes) <= 5)
+      return { rotulo: `Últimas ${Math.max(...restantes)} vagas`, tom: 'accent', Icon: null } as const
+
+    return { rotulo: 'Inscrições abertas', tom: 'primary', Icon: null } as const
+  }
+
+  const tons: Record<string, string> = {
+    success: 'bg-success-soft text-success',
+    primary: 'bg-primary-soft text-primary-dark',
+    accent: 'bg-accent-soft text-accent',
+    neutro: 'border border-border-strong text-muted',
+  }
 
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">Cursos</h1>
-      <p className="mt-1 text-sm text-muted">Cursos publicados e abertos para inscrição.</p>
+      <p className="mt-1 text-sm text-muted">
+        Atividades complementares e cursos de extensão da UFR, com certificado de
+        validação pública.
+      </p>
 
       {erro && (
-        <p className="mt-4 rounded-md border border-danger-soft bg-danger-soft/40 px-3 py-2 text-sm text-danger">
+        <p className="mt-4 rounded-md border border-danger-soft bg-danger-soft px-3 py-2 text-sm text-danger">
           {erro}
         </p>
       )}
@@ -133,7 +113,8 @@ export default async function CursosPage({
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filtrar por categoria">
           <Link
             href="/cursos"
-            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+            aria-current={!cat ? 'page' : undefined}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${
               !cat ? 'bg-primary text-white' : 'border border-border-strong text-muted hover:text-ink'
             }`}
           >
@@ -143,8 +124,11 @@ export default async function CursosPage({
             <Link
               key={k.slug}
               href={`/cursos?cat=${k.slug}`}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-                cat === k.slug ? 'bg-primary text-white' : 'border border-border-strong text-muted hover:text-ink'
+              aria-current={cat === k.slug ? 'page' : undefined}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${
+                cat === k.slug
+                  ? 'bg-primary text-white'
+                  : 'border border-border-strong text-muted hover:text-ink'
               }`}
             >
               {k.nome}
@@ -153,143 +137,58 @@ export default async function CursosPage({
         </nav>
       )}
 
-      <ul className="mt-6 space-y-4">
-        {cursos.map((c) => (
-          <li key={c.id} className="rounded-lg border border-border bg-surface p-5">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="font-display text-base font-semibold text-ink">{c.titulo}</h2>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  c.modalidade === 'online'
-                    ? 'bg-primary-soft text-primary-dark'
-                    : 'border border-border-strong text-muted'
-                }`}
+      <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+        {cursos.map((c) => {
+          const e = estado(c)
+          return (
+            <li key={c.id}>
+              {/* O card inteiro é link. A inscrição acontece na página do curso,
+                  onde há espaço para mostrar data, local e vagas de cada turma
+                  sem empilhar formulários dentro do cartão. */}
+              <Link
+                href={`/cursos/${c.slug}`}
+                className="flex h-full flex-col rounded-lg border border-border bg-surface p-5 transition-colors hover:border-primary"
               >
-                {c.modalidade === 'online' ? '100% online' : 'híbrido'}
-              </span>
-            </div>
-
-            {c.categoria && (
-              <p className="mt-2 text-xs font-medium text-primary-dark">{c.categoria.nome}</p>
-            )}
-
-            <p className="mt-2 text-sm text-muted">{c.descricao}</p>
-
-            <div className="mt-3 flex items-center gap-1.5 text-xs text-muted">
-              <Clock className="h-3.5 w-3.5" />
-              {c.carga_horaria} horas
-            </div>
-
-            {c.turma.map((t) => {
-              const v = vagas.get(t.id)
-              const aberta = v?.aberta ?? true
-              const prazo = dataBR(t.inscricoes_ate)
-              const minhaMatricula = inscrito.get(t.id)
-              const jaConcluiu = concluidos.has(c.id)
-
-              // Já matriculado tem precedência sobre turma fechada: quem entrou
-              // não perde o acesso quando a inscrição encerra. Mesma regra que
-              // a 0013 aplica no banco, agora refletida na tela.
-              if (minhaMatricula) {
-                return (
-                  <div
-                    key={t.id}
-                    className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
-                  >
-                    <Link
-                      href={`/trilha/${minhaMatricula}`}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Continuar curso
-                    </Link>
-                    <span className="flex items-center gap-1.5 text-sm text-muted">
-                      {t.tipo === 'continua' ? (
-                        'Você já está inscrito'
-                      ) : (
-                        <>
-                          <MapPin className="h-3.5 w-3.5" />
-                          Turma {t.identificador} · você já está inscrito
-                        </>
-                      )}
-                    </span>
-                  </div>
-                )
-              }
-
-              // Concluiu o curso em outra turma: não entra de novo. A regra
-              // vem depois do "já matriculado" de propósito — quem foi
-              // aprovado NESTA turma continua vendo "Continuar curso" e
-              // mantendo acesso à própria trilha e ao próprio certificado.
-              if (jaConcluiu) {
-                return (
-                  <div
-                    key={t.id}
-                    className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
-                  >
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-muted">
-                      <Award className="h-3.5 w-3.5" />
-                      Curso já concluído
-                    </span>
-                    <Link
-                      href="/certificados"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      Ver meu certificado
-                    </Link>
-                  </div>
-                )
-              }
-
-              return (
-                <form
-                  key={t.id}
-                  action={inscrever}
-                  className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
-                >
-                  <input type="hidden" name="turmaId" value={t.id} />
-                  <button
-                    disabled={!aberta}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {aberta ? 'Inscrever-se' : 'Inscrições encerradas'}
-                  </button>
-
-                  <span className="flex items-center gap-1.5 text-sm text-muted">
-                    {t.tipo === 'continua' ? (
-                      'Turma contínua'
-                    ) : (
-                      <>
-                        <MapPin className="h-3.5 w-3.5" />
-                        Turma {t.identificador} · encontro em{' '}
-                        {t.encontro_data
-                          ? new Date(t.encontro_data).toLocaleDateString('pt-BR')
-                          : 'a definir'}
-                      </>
-                    )}
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-xs font-medium text-primary">
+                    {c.categoria?.nome ?? 'Sem categoria'}
                   </span>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${tons[e.tom]}`}
+                  >
+                    {e.rotulo}
+                  </span>
+                </div>
 
-                  {v?.restantes != null && aberta && (
-                    <span className="flex items-center gap-1.5 text-xs text-muted">
-                      <Users className="h-3.5 w-3.5" />
-                      {v.restantes > 0
-                        ? `${v.restantes} ${v.restantes === 1 ? 'vaga' : 'vagas'}`
-                        : 'sem vagas'}
+                <h2 className="mt-2 font-display text-base font-semibold text-ink">{c.titulo}</h2>
+
+                {c.descricao && (
+                  <p className="mt-1.5 line-clamp-2 text-sm text-muted">{c.descricao}</p>
+                )}
+
+                <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-muted">
+                  <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      {c.carga_horaria}h
                     </span>
-                  )}
-
-                  {prazo && aberta && (
-                    <span className="text-xs text-muted">inscrições até {prazo}</span>
-                  )}
-                </form>
-              )
-            })}
-          </li>
-        ))}
+                    <span>{c.modalidade === 'online' ? '100% online' : 'híbrido'}</span>
+                  </span>
+                  <span className="flex items-center gap-1 font-medium text-primary">
+                    Ver curso
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            </li>
+          )
+        })}
       </ul>
 
       {cursos.length === 0 && (
-        <p className="mt-6 text-sm text-muted">Nenhum curso publicado no momento.</p>
+        <p className="mt-6 rounded-lg border border-dashed border-border-strong p-8 text-center text-sm text-muted">
+          {cat ? 'Nenhum curso publicado nesta categoria.' : 'Nenhum curso publicado no momento.'}
+        </p>
       )}
     </div>
   )

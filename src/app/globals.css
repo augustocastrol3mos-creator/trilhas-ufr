@@ -1,37 +1,75 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ===========================================================================
+   PALETA — Manual de Uso da Marca UFR (PROTIC, out/2021)
+   ===========================================================================
+   Cores oficiais e o contraste de cada uma sobre branco:
+
+     #20376B  azul escuro   11,5:1   texto, botões, qualquer coisa
+     #0D6AB0  azul claro     5,7:1   texto, links, botões
+     #53B366  verde          2,6:1   REPROVA — só decorativo
+     #1D1D1B  preto         18,9:1   texto
+
+   O verde institucional NÃO passa no mínimo da WCAG AA (4,5:1) nem no critério
+   frouxo de texto grande (3:1). Isso é fato da cor, não preferência: usá-lo
+   como texto ou como fundo de botão com texto branco deixaria a plataforma
+   fora da conformidade que um site de universidade federal precisa ter
+   (eMAG, LBI). Fica reservado a acento decorativo.
+
+   Onde precisamos de verde COM SIGNIFICADO (aprovado, concluído), usamos um
+   verde escurecido da mesma família — 5,07:1.
+
+   Papéis dos dois azuis:
+     primary       = #0D6AB0  ação (botão com texto branco, link)
+     primary-dark  = #20376B  hover, ênfase, texto sobre fundo claro
+   Assim `bg-primary hover:bg-primary-dark` escurece de verdade, e
+   `text-primary-dark` sobre `bg-primary-soft` fica com contraste altíssimo.
+   =========================================================================== */
+
 @theme {
-  /* Superfícies */
-  --color-canvas: #f3f5f4;
+  /* Superfícies — canvas levemente frio, para conversar com a família azul */
+  --color-canvas: #f4f6f9;
   --color-surface: #ffffff;
-  --color-border: #e3e5e8;
-  --color-border-strong: #cdd1d5;
+  --color-border: #dfe3ea;
+  --color-border-strong: #c3cad6;
 
-  /* Texto */
-  --color-ink: #1a1d1f;
-  --color-muted: #6b7280;
-  --color-subtle: #9aa0a6;
+  /* Texto — ink é o preto oficial da marca.
+     muted 5,98:1 e subtle 4,57:1: os DOIS passam em AA e continuam
+     visivelmente distintos. Antes, subtle era #9aa0a6 (2,64:1), reprovado,
+     e aparecia em 66 lugares — inclusive no certificado e na página pública
+     de validação. */
+  --color-ink: #1d1d1b;
+  --color-muted: #5c6470;
+  --color-subtle: #6e7686;
 
-  /* Primária — decisão, aprovação, ação principal */
-  --color-primary: #1f7a4d;
-  --color-primary-dark: #145c39;
-  --color-primary-soft: #e4f2e9;
+  /* Primária — os dois azuis da marca */
+  --color-primary: #0d6ab0;
+  --color-primary-dark: #20376b;
+  --color-primary-soft: #e6f0f8;
 
-  /* Atenção — pendência, aguardando, "fique atento" */
-  --color-accent: #c08a2e;
-  --color-accent-soft: #fbf1de;
+  /* Verde institucional: decorativo. Nunca como texto nem sob texto branco. */
+  --color-brand-green: #53b366;
 
-  /* Erro / reprovação */
+  /* Sucesso — verde escurecido da mesma família, legível */
+  --color-success: #2e7d46;
+  --color-success-soft: #e8f5ec;
+
+  /* Atenção — pendência, aguardando (4,87:1) */
+  --color-accent: #9a6700;
+  --color-accent-soft: #fdf3e0;
+
+  /* Erro / reprovação (6,54:1) */
   --color-danger: #b3261e;
   --color-danger-soft: #fbeae9;
 
-  /* Sidebar institucional */
-  --color-sidebar: #20242a;
-  --color-sidebar-foreground: #c7cbd1;
-  --color-sidebar-muted: #82898f;
-  --color-sidebar-active: #26362d;
-  --color-sidebar-border: #2e3238;
+  /* Sidebar — azul escuro da marca, aprofundado.
+     foreground 9,8:1 e muted 5,08:1 sobre o fundo da barra. */
+  --color-sidebar: #16264a;
+  --color-sidebar-foreground: #c9d2e4;
+  --color-sidebar-muted: #8a97b4;
+  --color-sidebar-active: #20376b;
+  --color-sidebar-border: #24365f;
 
   --font-display: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
   --font-body: var(--font-inter), "Inter", sans-serif;
@@ -53,9 +91,22 @@ h1, h2, h3, h4 {
   color: var(--color-primary-dark);
 }
 
+/* Foco visível: 3px com offset aparece mesmo sobre borda colorida. Navegação
+   por teclado é requisito de acessibilidade, não detalhe. */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Quem pediu ao sistema para reduzir animação não deve receber animação. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

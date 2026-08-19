@@ -15,8 +15,12 @@ export async function inscrever(formData: FormData) {
   // A regra mora no banco (0013). Aqui só traduzimos a recusa em algo legível:
   // throw new Error derrubava a página inteira para o aluno que clicasse numa
   // turma lotada ou fora do prazo.
+  // Volta para a página de onde veio (catálogo ou detalhe do curso), para o
+  // aluno ler a recusa no contexto em que clicou.
   if (error) {
-    redirect(`/cursos?erro=${encodeURIComponent(error.message)}`)
+    const volta = String(formData.get('voltarPara') ?? '/cursos')
+    const base = volta.startsWith('/cursos') ? volta : '/cursos'
+    redirect(`${base}?erro=${encodeURIComponent(error.message)}`)
   }
 
   redirect(`/trilha/${data}`)
