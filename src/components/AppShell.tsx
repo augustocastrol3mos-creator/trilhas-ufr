@@ -7,6 +7,7 @@ import {
   Home, BookOpen, GraduationCap, Award, LogOut, Menu, X, User, ShieldCheck, Presentation, Settings,
 } from 'lucide-react'
 import { sair } from '@/app/login/actions'
+import Marca from './Marca'
 
 type Usuario = { nome: string; email: string; papel: string } | null
 
@@ -40,7 +41,7 @@ export default function AppShell({
     <div className="min-h-screen md:flex">
       {/* Topbar mobile */}
       <div className="no-print flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden">
-        <span className="font-display text-sm font-semibold text-white">Trilhas UFR</span>
+        <Marca tema="escuro" compacta />
         <button onClick={() => setAberto((v) => !v)} aria-label="Abrir menu">
           {aberto ? <X className="h-5 w-5 text-white" /> : <Menu className="h-5 w-5 text-white" />}
         </button>
@@ -55,10 +56,7 @@ export default function AppShell({
       >
         <div className="flex h-full flex-col md:sticky md:top-0 md:h-screen">
           <div className="hidden items-center gap-2 border-b border-sidebar-border px-5 py-5 md:flex">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-display text-sm font-bold text-white">
-              T
-            </div>
-            <span className="font-display text-[15px] font-semibold text-white">Trilhas UFR</span>
+            <Marca tema="escuro" />
           </div>
 
           <nav className="flex-1 space-y-0.5 px-3 py-4">
