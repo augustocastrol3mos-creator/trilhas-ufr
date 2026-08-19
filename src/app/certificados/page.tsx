@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, ChevronRight } from 'lucide-react'
+import { Award, ChevronRight, ArrowUpRight, FileCheck2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
 
@@ -9,11 +9,14 @@ export default async function CertificadosPage() {
   const supabase = await createClient()
   const user = await sessaoAtual()
 
-  const { data, error } = await supabase
+  const [{ data, error }, { data: cfg }] = await Promise.all([
+    supabase
     .from('certificado')
     .select('id, codigo, curso_titulo, carga_horaria, emitido_em, revogado_em, matricula!inner(usuario_id)')
     .eq('matricula.usuario_id', user?.id ?? '')
-    .order('emitido_em', { ascending: false })
+    .order('emitido_em', { ascending: false }),
+    supabase.from('configuracao').select('url_ac_facil, rotulo_ac_facil').single(),
+  ])
 
   if (error) {
     return (
@@ -24,6 +27,7 @@ export default async function CertificadosPage() {
   }
 
   const certificados = data ?? []
+  const acFacil = (cfg as any)?.url_ac_facil as string | null | undefined
 
   return (
     <div>
@@ -64,6 +68,35 @@ export default async function CertificadosPage() {
             Ver meus cursos
           </Link>
         </div>
+      )}
+
+      {acFacil && certificados.length > 0 && (
+        <a
+          href={acFacil}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-8 flex items-start gap-4 rounded-lg border border-primary-soft bg-primary-soft p-5 hover:border-primary"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface">
+            <FileCheck2 className="h-5 w-5 text-primary" />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="font-display font-semibold text-ink">
+              {(cfg as any)?.rotulo_ac_facil ?? 'Como lançar suas atividades complementares no SEI'}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              O <strong className="font-semibold text-ink">AC Fácil</strong> reúne os
+              certificados que você já tem, calcula os créditos por tipo de atividade e
+              gera o comprovante em PDF pronto para abrir o processo no SEI.
+            </p>
+            <p className="mt-2 flex items-center gap-1 text-sm font-medium text-primary-dark">
+              Abrir o AC Fácil
+              <ArrowUpRight className="h-3.5 w-3.5" />
+              <span className="sr-only">(abre em uma nova aba)</span>
+            </p>
+          </div>
+        </a>
       )}
     </div>
   )
