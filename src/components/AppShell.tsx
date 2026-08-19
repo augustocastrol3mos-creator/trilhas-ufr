@@ -50,16 +50,15 @@ export default function AppShell({
       {/* Sidebar */}
       <aside
         className={`
-          no-print w-full shrink-0 bg-sidebar md:block md:w-60
+          no-print w-full shrink-0 border-border bg-surface md:block md:w-64 md:border-r
           ${aberto ? 'block' : 'hidden'}
         `}
       >
         <div className="flex h-full flex-col md:sticky md:top-0 md:h-screen">
-          {/* Faixa branca do topo: é a área de proteção que o manual da UFR exige
-              para o logotipo colorido sobre fundo escuro. Como banda inteira,
-              ela lê como decisão de layout — o retângulo só em volta da marca
-              lia como remendo. */}
-          <div className="hidden items-center bg-white px-5 py-5 md:flex">
+          {/* Com a barra clara, a área de proteção do logotipo exigida pelo
+              manual da UFR é a própria superfície: nada de bloco branco
+              sobreposto, nada de emenda. */}
+          <div className="hidden items-center border-b border-border px-5 py-5 md:flex">
             <Marca />
           </div>
 
@@ -72,8 +71,8 @@ export default function AppShell({
                 className={`
                   flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors
                   ${ativo(href, exato)
-                    ? 'bg-sidebar-active text-white'
-                    : 'text-sidebar-foreground hover:bg-sidebar-active/60 hover:text-white'}
+                    ? 'bg-primary-soft font-medium text-primary-dark'
+                    : 'text-muted hover:bg-canvas hover:text-ink'}
                 `}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -82,15 +81,15 @@ export default function AppShell({
             ))}
           </nav>
 
-          <div className="border-t border-sidebar-border p-3">
+          <div className="border-t border-border p-3">
             {usuario ? (
               <div className="rounded-md px-3 py-2">
-                <div className="flex items-center gap-2 text-sm text-white">
-                  <User className="h-4 w-4 shrink-0 text-sidebar-muted" />
+                <div className="flex items-center gap-2 text-sm text-ink">
+                  <User className="h-4 w-4 shrink-0 text-subtle" />
                   <Link href="/perfil" className="truncate hover:underline">{usuario.nome || usuario.email}</Link>
                 </div>
                 <form action={sair} className="mt-2">
-                  <button className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-sidebar-foreground hover:bg-sidebar-active/60 hover:text-white">
+                  <button className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted hover:bg-canvas hover:text-ink">
                     <LogOut className="h-4 w-4" />
                     Sair
                   </button>
@@ -110,7 +109,7 @@ export default function AppShell({
 
       {/* Conteúdo */}
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-4xl px-5 py-8 md:px-10 md:py-10">{children}</div>
+        <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12">{children}</div>
       </main>
     </div>
   )

@@ -63,13 +63,14 @@
   --color-danger: #b3261e;
   --color-danger-soft: #fbeae9;
 
-  /* Sidebar — azul escuro da marca, aprofundado.
-     foreground 9,8:1 e muted 5,08:1 sobre o fundo da barra. */
-  --color-sidebar: #16264a;
-  --color-sidebar-foreground: #c9d2e4;
-  --color-sidebar-muted: #8a97b4;
-  --color-sidebar-active: #20376b;
-  --color-sidebar-border: #24365f;
+  /* Superfície escura — rodapé público e blocos de contraste.
+     Antes chamava-se `sidebar`, mas a barra lateral ficou clara: manter o
+     nome antigo faria o rodapé mudar de cor junto com a navegação, que são
+     decisões independentes. foreground 9,8:1 e muted 5,08:1 sobre ela. */
+  --color-deep: #16264a;
+  --color-deep-foreground: #c9d2e4;
+  --color-deep-muted: #8a97b4;
+  --color-deep-border: #24365f;
 
   --font-display: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
   --font-body: var(--font-inter), "Inter", sans-serif;

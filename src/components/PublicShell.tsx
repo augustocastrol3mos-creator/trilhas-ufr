@@ -36,7 +36,7 @@ export default function PublicShell({ children }: { children: React.ReactNode })
         {ehLanding ? children : <div className="mx-auto max-w-4xl px-6 py-12">{children}</div>}
       </main>
 
-      <footer className="bg-sidebar">
+      <footer className="bg-deep">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <Coluna titulo="Acessos">
@@ -57,8 +57,8 @@ export default function PublicShell({ children }: { children: React.ReactNode })
             </Coluna>
           </div>
 
-          <div className="mt-10 border-t border-sidebar-border pt-6">
-            <p className="text-xs text-sidebar-muted">
+          <div className="mt-10 border-t border-deep-border pt-6">
+            <p className="text-xs text-deep-muted">
               Universidade Federal de Rondonópolis · Rondonópolis, MT
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function PublicShell({ children }: { children: React.ReactNode })
 function Coluna({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-wider text-sidebar-muted">{titulo}</p>
+      <p className="text-[11px] uppercase tracking-wider text-deep-muted">{titulo}</p>
       <ul className="mt-3 space-y-2">{children}</ul>
     </div>
   )
@@ -80,7 +80,7 @@ function Coluna({ titulo, children }: { titulo: string; children: React.ReactNod
 function ItemLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <Link href={href} className="text-sm text-sidebar-foreground hover:text-white">
+      <Link href={href} className="text-sm text-deep-foreground hover:text-white">
         {children}
       </Link>
     </li>
@@ -88,5 +88,5 @@ function ItemLink({ href, children }: { href: string; children: React.ReactNode 
 }
 
 function ItemTexto({ children }: { children: React.ReactNode }) {
-  return <li className="text-sm leading-relaxed text-sidebar-muted">{children}</li>
+  return <li className="text-sm leading-relaxed text-deep-muted">{children}</li>
 }

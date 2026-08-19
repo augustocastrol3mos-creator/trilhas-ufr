@@ -3,27 +3,25 @@ import Image from 'next/image'
 /**
  * Marca institucional: UFR + Trilhas.
  *
- * Regras seguidas do Manual de Uso da Marca UFR (PROTIC, out/2021):
+ * ALINHAMENTO — `items-end`, não `items-center`.
+ * O logotipo simplificado da UFR tem os triângulos ACIMA da palavra "UFR".
+ * Centralizando os dois blocos verticalmente, a palavra "UFR" cai 6,3px
+ * abaixo de "TRILHAS" (medido nas alturas usadas aqui) e a marca parece torta.
+ * Alinhando pela base, as duas linhas de base ficam a 0,6px uma da outra —
+ * que é como se alinham duas palavras lado a lado em tipografia.
  *
- * - Versão SIMPLIFICADA (só a sigla) para uso cotidiano e telas pequenas.
- *   O manual reserva a versão completa para público que desconhece a marca.
- * - ÁREA DE PROTEÇÃO: espaço livre ao redor equivalente à altura dos
- *   triângulos — aqui garantida pelo padding da faixa branca que envolve
- *   este componente, tanto na sidebar quanto no cabeçalho público.
- * - Sobre fundo escuro, o manual exige o logotipo colorido em área branca.
- *   Resolvemos isso com a FAIXA inteira do topo em branco, não com um
- *   retângulo em volta da marca: mesma conformidade, sem parecer remendo.
- * - O logotipo nunca é esticado, recolorido ou recriado: é o PNG oficial,
- *   com proporção travada por `width`/`height`.
- * - "UFR em primeiro lugar, com peso maior ou igual ao das outras marcas" —
- *   daí a ordem e o separador.
+ * Manual de Uso da Marca UFR (PROTIC, out/2021):
+ * - Versão SIMPLIFICADA para uso cotidiano e telas pequenas.
+ * - Área de proteção garantida pelo padding da faixa branca em volta.
+ * - PNG oficial, proporção travada: nunca esticado, recolorido ou recriado.
+ * - "UFR em primeiro lugar, com peso maior ou igual às outras marcas".
  */
 export default function Marca({ compacta = false }: { compacta?: boolean }) {
   const alturaUfr = compacta ? 24 : 30
-  const alturaTrilhas = compacta ? 15 : 18
+  const alturaTrilhas = compacta ? 14 : 17
 
   return (
-    <span className="flex items-center gap-3">
+    <span className="flex items-end gap-3">
       <Image
         src="/logo-ufr.png"
         alt="Universidade Federal de Rondonópolis"
@@ -32,13 +30,17 @@ export default function Marca({ compacta = false }: { compacta?: boolean }) {
         priority
       />
 
-      <span aria-hidden="true" className="h-7 w-px bg-border-strong" />
+      <span
+        aria-hidden="true"
+        className="mb-0.5 w-px self-stretch bg-border-strong"
+      />
 
       <Image
         src="/logo-trilhas.png"
         alt="Trilhas"
         width={Math.round((724 / 160) * alturaTrilhas)}
         height={alturaTrilhas}
+        className="mb-0.5"
         priority
       />
     </span>
