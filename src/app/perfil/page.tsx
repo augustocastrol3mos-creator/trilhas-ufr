@@ -46,7 +46,7 @@ export default async function PerfilPage() {
     <div className="mx-auto max-w-2xl">
       <h1 className="font-display text-2xl font-semibold text-ink">Perfil</h1>
       <p className="mt-1 text-sm text-muted">
-        Este nome aparece exatamente assim no certificado.
+        Seu percurso na plataforma e os dados que vão impressos no certificado.
       </p>
 
       {vazio && (
@@ -60,10 +60,15 @@ export default async function PerfilPage() {
       )}
 
       <section aria-labelledby="percurso" className="mt-6">
-        <h2 id="percurso" className="sr-only">Meu percurso</h2>
-
         <div className="rounded-lg border border-border bg-surface p-6">
-          <div className="flex flex-wrap items-baseline gap-x-3">
+          <h2
+            id="percurso"
+            className="text-xs font-semibold uppercase tracking-wide text-muted"
+          >
+            Meu percurso
+          </h2>
+
+          <div className="mt-3 flex flex-wrap items-baseline gap-x-3">
             <span className="font-display text-4xl font-bold text-primary-dark">
               {p.horas ?? 0}h
             </span>
@@ -114,7 +119,15 @@ export default async function PerfilPage() {
       </section>
 
       <form action={salvar} className="mt-6 rounded-lg border border-border bg-surface p-6">
-        <label className="block text-sm font-medium text-ink">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+          Dados pessoais
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          O nome abaixo aparece <strong className="text-ink">exatamente assim</strong> no
+          certificado.
+        </p>
+
+        <label className="mt-5 block text-sm font-medium text-ink">
           Nome completo
           <input
             name="nome"
