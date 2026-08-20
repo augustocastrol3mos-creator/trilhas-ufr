@@ -40,6 +40,12 @@ export default async function PerfilPage() {
     porCategoria?: { nome: string; horas: number }[]
   }
 
+  // O nome trava depois da primeira inscrição (0028): a partir dali ele
+  // determina o que sai impresso no certificado, então deixa de ser
+  // autoatendimento. A regra real está no gatilho do banco; aqui só
+  // antecipamos, para o aluno não tomar erro ao salvar.
+  const travado = (p.matriculas ?? 0) > 0
+
   const vazio = !perfil?.nome_completo?.trim()
 
   return (
@@ -132,12 +138,19 @@ export default async function PerfilPage() {
           <input
             name="nome"
             required
+            disabled={travado}
             defaultValue={perfil?.nome_completo ?? ''}
-            className="mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink"
+            className={`mt-1.5 w-full rounded-md border px-3 py-2 text-sm ${
+              travado
+                ? 'border-border bg-canvas text-muted'
+                : 'border-border-strong bg-surface text-ink'
+            }`}
           />
         </label>
         <p className="mt-1.5 text-xs text-subtle">
-          Escreva como consta no seu documento. Corrigir depois da emissão exige revogar e reemitir.
+          {travado
+            ? 'Seu nome não pode mais ser alterado por aqui: ele já determina o que sai impresso nos seus certificados. Se estiver errado, procure a coordenação — a correção é registrada com justificativa.'
+            : 'Escreva como consta no seu documento. Depois da sua primeira inscrição, este campo é bloqueado e só a coordenação altera.'}
         </p>
 
         <label className="mt-5 block text-sm font-medium text-ink">
@@ -149,7 +162,10 @@ export default async function PerfilPage() {
           />
         </label>
 
-        <button className="mt-6 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark">
+        <button
+          disabled={travado}
+          className="mt-6 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
+        >
           Salvar
         </button>
       </form>
