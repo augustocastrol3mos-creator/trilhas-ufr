@@ -9,7 +9,7 @@ export async function decidir(
   id: string, aprovar: boolean, resposta: string
 ): Promise<Resposta> {
   const supabase = await createClient()
-  const { error } = await supabase.rpc('decidir_solicitacao_nome', {
+  const { error } = await supabase.rpc('decidir_solicitacao_dados', {
     p_solicitacao: id,
     p_aprovar: aprovar,
     p_resposta: resposta,

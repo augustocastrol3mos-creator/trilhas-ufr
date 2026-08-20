@@ -3,10 +3,12 @@ import Link from 'next/link'
 import { AlertTriangle, Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
-import SolicitarNome, { type Solicitacao } from './SolicitarNome'
+import DadosPrivacidade, { type Solicitacao } from './DadosPrivacidade'
 
 export const dynamic = 'force-dynamic'
 
+// Edição direta, válida só antes da primeira inscrição. Depois disso o gatilho
+// do banco (0031) recusa, e o caminho passa a ser a solicitação.
 async function salvar(formData: FormData) {
   'use server'
   const supabase = await createClient()
@@ -29,13 +31,17 @@ async function salvar(formData: FormData) {
 export default async function PerfilPage() {
   const supabase = await createClient()
   const user = await sessaoAtual()
-  // Independentes: vão juntas. O filtro por dono do percurso mora dentro da
-  // RPC, não aqui — é o padrão que evita o vazamento da seção 3 do documento.
-  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }] = await Promise.all([
-    supabase.from('usuario').select('nome_completo, email, rga, e_estudante_ufr').eq('id', user?.id ?? '').single(),
-    supabase.rpc('meu_percurso'),
-    supabase.rpc('minha_solicitacao_nome'),
-  ])
+
+  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }] =
+    await Promise.all([
+      supabase
+        .from('usuario')
+        .select('nome_completo, email, rga, e_estudante_ufr')
+        .eq('id', user?.id ?? '')
+        .single(),
+      supabase.rpc('meu_percurso'),
+      supabase.rpc('minha_solicitacao_dados'),
+    ])
 
   const p = (percursoRaw ?? {}) as {
     matriculas?: number
@@ -46,12 +52,10 @@ export default async function PerfilPage() {
     porCategoria?: { nome: string; horas: number }[]
   }
 
-  // O nome trava depois da primeira inscrição (0028): a partir dali ele
-  // determina o que sai impresso no certificado, então deixa de ser
-  // autoatendimento. A regra real está no gatilho do banco; aqui só
-  // antecipamos, para o aluno não tomar erro ao salvar.
+  // A partir da primeira inscrição, nome e RGA determinam o que sai impresso
+  // no certificado — deixam de ser autoatendimento. A regra real está no
+  // gatilho do banco; aqui só antecipamos, para não dar erro ao salvar.
   const travado = (p.matriculas ?? 0) > 0
-
   const vazio = !perfil?.nome_completo?.trim()
 
   return (
@@ -71,12 +75,10 @@ export default async function PerfilPage() {
         </div>
       )}
 
+      {/* ---------- percurso ---------- */}
       <section aria-labelledby="percurso" className="mt-6">
         <div className="rounded-lg border border-border bg-surface p-6">
-          <h2
-            id="percurso"
-            className="text-xs font-semibold uppercase tracking-wide text-muted"
-          >
+          <h2 id="percurso" className="text-xs font-semibold uppercase tracking-wide text-muted">
             Meu percurso
           </h2>
 
@@ -130,97 +132,74 @@ export default async function PerfilPage() {
         </div>
       </section>
 
-      <form action={salvar} className="mt-6 rounded-lg border border-border bg-surface p-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
-          Dados pessoais
-        </h2>
-        <p className="mt-2 text-sm text-muted">
-          O nome abaixo aparece <strong className="text-ink">exatamente assim</strong> no
-          certificado.
-        </p>
+      {/* ---------- edição livre, antes da primeira inscrição ---------- */}
+      {!travado && (
+        <form action={salvar} className="mt-6 rounded-lg border border-border bg-surface p-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Dados do certificado
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Nome e RGA aparecem <strong className="text-ink">exatamente assim</strong> no
+            certificado. Você pode editá-los livremente até a sua primeira inscrição;
+            depois disso, correções passam pela coordenação.
+          </p>
 
-        <label className="mt-5 block text-sm font-medium text-ink">
-          Nome completo
-          <input
-            name="nome"
-            required
-            disabled={travado}
-            defaultValue={perfil?.nome_completo ?? ''}
-            className={`mt-1.5 w-full rounded-md border px-3 py-2 text-sm ${
-              travado
-                ? 'border-border bg-canvas text-muted'
-                : 'border-border-strong bg-surface text-ink'
-            }`}
-          />
-        </label>
-        <p className="mt-1.5 text-xs text-subtle">
-          {travado
-            ? 'Seu nome não pode mais ser alterado por aqui: ele já determina o que sai impresso nos seus certificados. Se estiver errado, procure a coordenação — a correção é registrada com justificativa.'
-            : 'Escreva como consta no seu documento. Depois da sua primeira inscrição, correções passam pela coordenação.'}
-        </p>
+          <label className="mt-5 block text-sm font-medium text-ink">
+            Nome completo
+            <input
+              name="nome"
+              required
+              defaultValue={perfil?.nome_completo ?? ''}
+              className="mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink"
+            />
+          </label>
+          <p className="mt-1.5 text-xs text-subtle">Escreva como consta no seu documento.</p>
 
-        {travado && (
-          <SolicitarNome
-            nomeAtual={perfil?.nome_completo ?? ''}
-            solicitacao={(solicitacaoRaw ?? null) as Solicitacao}
-          />
-        )}
+          <div className="mt-5 rounded-md border border-border bg-canvas p-4">
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                name="ufr"
+                defaultChecked={perfil?.e_estudante_ufr ?? false}
+                className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+              />
+              <span className="text-sm text-ink">Sou estudante da UFR</span>
+            </label>
 
-        <div className="mt-5 rounded-md border border-border bg-canvas p-4">
-          <p className="text-sm font-medium text-ink">Vínculo com a UFR</p>
-          {travado ? (
-            <p className="mt-1.5 text-sm text-muted">
-              {perfil?.rga
-                ? <>Estudante da UFR · RGA <span className="font-mono text-ink">{perfil.rga}</span></>
-                : 'Sem vínculo declarado com a UFR'}
+            <label className="mt-3 block text-sm font-medium text-ink">
+              RGA
+              <input
+                name="rga"
+                inputMode="numeric"
+                pattern="[0-9]{12}"
+                maxLength={12}
+                placeholder="202300000000"
+                defaultValue={perfil?.rga ?? ''}
+                className="mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink"
+              />
+            </label>
+            <p className="mt-1.5 text-xs text-subtle">
+              12 dígitos, começando pelo ano de ingresso. É o que permite à coordenação
+              conferir o certificado contra o registro acadêmico.
             </p>
-          ) : (
-            <>
-              <label className="mt-2 flex cursor-pointer items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  name="ufr"
-                  defaultChecked={perfil?.e_estudante_ufr ?? false}
-                  className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
-                />
-                <span className="text-sm text-ink">Sou estudante da UFR</span>
-              </label>
-              <label className="mt-3 block text-sm font-medium text-ink">
-                RGA
-                <input
-                  name="rga"
-                  inputMode="numeric"
-                  pattern="[0-9]{12}"
-                  maxLength={12}
-                  placeholder="202300000000"
-                  defaultValue={perfil?.rga ?? ''}
-                  className="mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink"
-                />
-              </label>
-              <p className="mt-1.5 text-xs text-subtle">
-                12 dígitos, começando pelo ano de ingresso. Vai impresso no certificado e
-                é o que permite à coordenação conferi-lo contra o registro acadêmico.
-              </p>
-            </>
-          )}
-        </div>
+          </div>
 
-        <label className="mt-5 block text-sm font-medium text-ink">
-          E-mail
-          <input
-            disabled
-            value={perfil?.email ?? ''}
-            className="mt-1.5 w-full rounded-md border border-border bg-canvas px-3 py-2 text-sm text-muted"
-          />
-        </label>
+          <button className="mt-6 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark">
+            Salvar
+          </button>
+        </form>
+      )}
 
-        <button
-          disabled={travado}
-          className="mt-6 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Salvar
-        </button>
-      </form>
+      {/* ---------- dados e privacidade ---------- */}
+      <div className="mt-6">
+        <DadosPrivacidade
+          nome={perfil?.nome_completo ?? ''}
+          rga={perfil?.rga ?? null}
+          email={perfil?.email ?? ''}
+          travado={travado}
+          solicitacao={(solicitacaoRaw ?? null) as Solicitacao}
+        />
+      </div>
     </div>
   )
 }

@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic'
 type Solicitacao = {
   id: string
   email: string
-  rga: string | null
-  nome_atual: string
-  nome_solicitado: string
+  nome_atual: string | null
+  nome_solicitado: string | null
+  rga_atual: string | null
+  rga_solicitado: string | null
   motivo: string
   status: string
   resposta: string | null
@@ -23,7 +24,7 @@ type Solicitacao = {
 
 export default async function SolicitacoesPage() {
   const supabase = await createClient()
-  const { data, error } = await supabase.rpc('solicitacoes_nome')
+  const { data, error } = await supabase.rpc('solicitacoes_dados')
   if (error) notFound()
 
   const lista = (data ?? []) as Solicitacao[]
@@ -40,13 +41,14 @@ export default async function SolicitacoesPage() {
         Alterações de nome
       </h1>
       <p className="mt-1 text-sm leading-relaxed text-muted">
-        Depois da primeira inscrição, o aluno não altera o próprio nome sozinho — o nome
-        determina o que sai impresso no certificado. Correções passam por aqui.
+        Depois da primeira inscrição, o aluno não altera nome nem RGA sozinho — os dois
+        vão impressos no certificado. Correções passam por aqui.
       </p>
 
       <p className="mt-4 rounded-lg border border-border bg-surface p-4 text-sm leading-relaxed text-muted">
         A maioria destes pedidos é correção legítima: erro de digitação, nome social, nome
-        de casada, acento que faltava. Ao avaliar, compare o nome pedido com o RGA e o
+        de casada, acento que faltava — e, no caso do RGA, reingresso ou novo curso na
+        UFR, que geram matrícula nova. Ao avaliar, compare o nome pedido com o RGA e o
         registro acadêmico — e, na dúvida, converse com a pessoa antes de recusar. Um
         pedido aqui não é indício de nada.
       </p>
@@ -69,15 +71,24 @@ export default async function SolicitacoesPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 font-display text-base font-semibold text-ink">
-                    {s.nome_atual || '(sem nome)'}
-                    <ArrowRight className="h-4 w-4 text-subtle" aria-hidden="true" />
-                    {s.nome_solicitado}
-                  </p>
+                  <div className="space-y-1">
+                    {s.nome_solicitado && (
+                      <p className="flex flex-wrap items-center gap-2 font-display text-base font-semibold text-ink">
+                        {s.nome_atual || '(sem nome)'}
+                        <ArrowRight className="h-4 w-4 text-subtle" aria-hidden="true" />
+                        {s.nome_solicitado}
+                      </p>
+                    )}
+                    {s.rga_solicitado && (
+                      <p className="flex flex-wrap items-center gap-2 font-mono text-sm text-ink">
+                        RGA {s.rga_atual || '—'}
+                        <ArrowRight className="h-4 w-4 text-subtle" aria-hidden="true" />
+                        {s.rga_solicitado}
+                      </p>
+                    )}
+                  </div>
                   <p className="mt-1 text-xs text-subtle">
-                    {s.email}
-                    {s.rga && <> · RGA <span className="font-mono">{s.rga}</span></>} ·{' '}
-                    {s.matriculas} inscrição(ões), {s.certificados} certificado(s)
+                    {s.email} · {s.matriculas} inscrição(ões), {s.certificados} certificado(s)
                   </p>
                 </div>
 
