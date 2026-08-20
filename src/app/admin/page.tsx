@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, BookOpen, ScrollText, Tags, Megaphone, Users, Presentation } from 'lucide-react'
+import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Users, Presentation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +12,11 @@ export default async function AdminPage() {
   // admin_visao_geral (0007) não conhece avisos, que só existem desde a 0025.
   // Contar aqui evita reescrever aquela função — que é lida por outras telas —
   // só para acrescentar um número.
+  const { count: pendentesNome } = await supabase
+    .from('solicitacao_nome')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pendente')
+
   const { count: totalAvisos } = await supabase
     .from('aviso')
     .select('*', { count: 'exact', head: true })
@@ -36,6 +41,8 @@ export default async function AdminPage() {
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: (v as any).categorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
+    { href: '/admin/solicitacoes', Icon: PencilLine, titulo: 'Alterações de nome', valor: pendentesNome ?? 0,
+      detalhe: 'pedidos de correção aguardando análise' },
     { href: '/admin/avisos', Icon: Megaphone, titulo: 'Avisos', valor: totalAvisos ?? 0,
       detalhe: 'mensagens no topo das telas de quem está logado' },
     { href: '/admin/auditoria', Icon: ScrollText, titulo: 'Auditoria', valor: v.ajustesDeNota,

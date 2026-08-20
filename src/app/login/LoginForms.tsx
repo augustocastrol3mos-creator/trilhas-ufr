@@ -6,6 +6,7 @@ import { Lock, UserPlus } from 'lucide-react'
 import { entrar, cadastrar } from './actions'
 
 export default function LoginForms() {
+  const [ufr, setUfr] = useState(false)
   const proximo = useSearchParams().get('proximo') ?? '/meus-cursos'
   const [aba, setAba] = useState<'entrar' | 'cadastrar'>('entrar')
   const [estadoEntrar, acaoEntrar, pendenteEntrar] = useActionState(entrar, null)
@@ -73,6 +74,45 @@ export default function LoginForms() {
               Senha
               <input name="senha" type="password" required minLength={6} className={campo} />
             </label>
+
+            {/* O vínculo com a UFR decide se o RGA é exigido. Participante da
+                comunidade em curso de extensão não tem RGA — exigir de todos
+                excluiria essas pessoas. */}
+            <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-md border border-border px-3 py-2.5">
+              <input
+                type="checkbox"
+                name="ufr"
+                checked={ufr}
+                onChange={(e) => setUfr(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+              />
+              <span className="text-sm text-ink">
+                Sou estudante da UFR
+                <span className="mt-0.5 block text-xs text-muted">
+                  Necessário para que o certificado sirva como atividade complementar
+                </span>
+              </span>
+            </label>
+
+            {ufr && (
+              <label className={`mt-4 ${label}`}>
+                RGA
+                <input
+                  name="rga"
+                  required
+                  inputMode="numeric"
+                  pattern="[0-9]{12}"
+                  maxLength={12}
+                  placeholder="202300000000"
+                  className={campo}
+                />
+                <span className="mt-1 block text-xs text-subtle">
+                  12 dígitos, começando pelo ano de ingresso. Ele será impresso no seu
+                  certificado e não poderá ser alterado depois da primeira inscrição.
+                </span>
+              </label>
+            )}
+
             <button
               disabled={pendenteCadastro}
               className="mt-6 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { AlertTriangle, Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
+import SolicitarNome, { type Solicitacao } from './SolicitarNome'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +15,11 @@ async function salvar(formData: FormData) {
 
   await supabase
     .from('usuario')
-    .update({ nome_completo: String(formData.get('nome') ?? '').trim() })
+    .update({
+      nome_completo: String(formData.get('nome') ?? '').trim(),
+      e_estudante_ufr: formData.get('ufr') === 'on',
+      rga: String(formData.get('rga') ?? '').trim() || null,
+    })
     .eq('id', user.id)
 
   revalidatePath('/perfil')
@@ -26,9 +31,10 @@ export default async function PerfilPage() {
   const user = await sessaoAtual()
   // Independentes: vão juntas. O filtro por dono do percurso mora dentro da
   // RPC, não aqui — é o padrão que evita o vazamento da seção 3 do documento.
-  const [{ data: perfil }, { data: percursoRaw }] = await Promise.all([
-    supabase.from('usuario').select('nome_completo, email').eq('id', user?.id ?? '').single(),
+  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }] = await Promise.all([
+    supabase.from('usuario').select('nome_completo, email, rga, e_estudante_ufr').eq('id', user?.id ?? '').single(),
     supabase.rpc('meu_percurso'),
+    supabase.rpc('minha_solicitacao_nome'),
   ])
 
   const p = (percursoRaw ?? {}) as {
@@ -150,8 +156,54 @@ export default async function PerfilPage() {
         <p className="mt-1.5 text-xs text-subtle">
           {travado
             ? 'Seu nome não pode mais ser alterado por aqui: ele já determina o que sai impresso nos seus certificados. Se estiver errado, procure a coordenação — a correção é registrada com justificativa.'
-            : 'Escreva como consta no seu documento. Depois da sua primeira inscrição, este campo é bloqueado e só a coordenação altera.'}
+            : 'Escreva como consta no seu documento. Depois da sua primeira inscrição, correções passam pela coordenação.'}
         </p>
+
+        {travado && (
+          <SolicitarNome
+            nomeAtual={perfil?.nome_completo ?? ''}
+            solicitacao={(solicitacaoRaw ?? null) as Solicitacao}
+          />
+        )}
+
+        <div className="mt-5 rounded-md border border-border bg-canvas p-4">
+          <p className="text-sm font-medium text-ink">Vínculo com a UFR</p>
+          {travado ? (
+            <p className="mt-1.5 text-sm text-muted">
+              {perfil?.rga
+                ? <>Estudante da UFR · RGA <span className="font-mono text-ink">{perfil.rga}</span></>
+                : 'Sem vínculo declarado com a UFR'}
+            </p>
+          ) : (
+            <>
+              <label className="mt-2 flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  name="ufr"
+                  defaultChecked={perfil?.e_estudante_ufr ?? false}
+                  className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+                />
+                <span className="text-sm text-ink">Sou estudante da UFR</span>
+              </label>
+              <label className="mt-3 block text-sm font-medium text-ink">
+                RGA
+                <input
+                  name="rga"
+                  inputMode="numeric"
+                  pattern="[0-9]{12}"
+                  maxLength={12}
+                  placeholder="202300000000"
+                  defaultValue={perfil?.rga ?? ''}
+                  className="mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              <p className="mt-1.5 text-xs text-subtle">
+                12 dígitos, começando pelo ano de ingresso. Vai impresso no certificado e
+                é o que permite à coordenação conferi-lo contra o registro acadêmico.
+              </p>
+            </>
+          )}
+        </div>
 
         <label className="mt-5 block text-sm font-medium text-ink">
           E-mail

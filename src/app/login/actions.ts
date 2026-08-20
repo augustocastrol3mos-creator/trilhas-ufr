@@ -22,7 +22,13 @@ export async function cadastrar(_estado: unknown, formData: FormData) {
     email: String(formData.get('email')),
     password: String(formData.get('senha')),
     options: {
-      data: { nome_completo: String(formData.get('nome') || '') },
+      data: {
+        nome_completo: String(formData.get('nome') || ''),
+        // Declaração da própria pessoa sobre si, não privilégio — por isso é
+        // seguro vir do metadata. `papel` nunca viria daqui (ver 0010).
+        e_estudante_ufr: formData.get('ufr') === 'on',
+        rga: String(formData.get('rga') || '').trim(),
+      },
     },
   })
   if (error) return { erro: error.message }

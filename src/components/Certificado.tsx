@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react'
 export type CertificadoDados = {
   codigo: string
   nome_titular: string
+  rga_titular: string | null
   curso_titulo: string
   carga_horaria: number
   modalidade: 'hibrido' | 'online'
@@ -92,6 +93,12 @@ export function CertificadoFrente({
             {c.nome_titular}
           </p>
 
+          {c.rga_titular && (
+            <p className="mt-1 font-mono text-[11px] tracking-wide text-muted">
+              RGA {c.rga_titular}
+            </p>
+          )}
+
           {/* Régua curta sob o nome: separa sem competir com a fita do topo. */}
           <span aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-[#0D6AB0]" />
 
@@ -151,6 +158,7 @@ export function CertificadoVerso({
 
         <dl className="mt-5 grid grid-cols-4 gap-x-6 gap-y-4">
           <Campo rotulo="Participante" valor={c.nome_titular} span={2} />
+          {c.rga_titular && <Campo rotulo="RGA" valor={c.rga_titular} />}
           <Campo rotulo="Carga horária" valor={`${c.carga_horaria} horas`} />
           <Campo
             rotulo="Modalidade"

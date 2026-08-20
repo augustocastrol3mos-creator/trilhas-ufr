@@ -43,6 +43,7 @@ export default async function ValidarPage({
       <div className="mt-4 rounded-lg border border-border bg-surface p-6">
         <dl className="space-y-4">
           <Linha rotulo="Titular" valor={c.nomeTitular} />
+          {c.rgaTitular && <Linha rotulo="RGA" valor={c.rgaTitular} />}
           <Linha rotulo="Curso" valor={c.cursoTitulo} />
           <Linha rotulo="Carga horária" valor={`${c.cargaHoraria} horas`} />
           <Linha
