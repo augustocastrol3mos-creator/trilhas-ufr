@@ -30,7 +30,12 @@ export default async function ProfessorPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Área do professor</h1>
-          <p className="mt-1 text-sm text-muted">Turmas sob sua responsabilidade.</p>
+          <p className="mt-1 text-sm text-muted">
+            Turmas sob sua responsabilidade.{' '}
+            <Link href="/professor/guia" className="font-medium text-primary hover:underline">
+              Primeira vez por aqui? Leia o guia
+            </Link>
+          </p>
         </div>
         <Link
           href="/professor/cursos"

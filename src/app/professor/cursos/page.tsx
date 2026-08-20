@@ -23,6 +23,12 @@ export default async function MeusCursosProfessorPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Meus cursos</h1>
           <p className="mt-1 text-sm text-muted">Cursos que você criou.</p>
+      <p className="mt-3 text-sm text-muted">
+        <Link href="/professor/guia" className="font-medium text-primary hover:underline">
+          Como criar um curso do zero
+        </Link>{' '}
+        — vocabulário, passo a passo e o que impede a publicação.
+      </p>
         </div>
         <Link
           href="/professor/cursos/novo"
