@@ -12,6 +12,14 @@ export default async function AdminPage() {
   // admin_visao_geral (0007) não conhece avisos, que só existem desde a 0025.
   // Contar aqui evita reescrever aquela função — que é lida por outras telas —
   // só para acrescentar um número.
+  // admin_visao_geral (0007) não conhece categorias, que só existem desde a
+  // 0022. O `?? 0` mascarava isso: mostrava zero para sempre, sem erro nenhum.
+  // É a mesma armadilha que já pegou avisos e solicitações — chave ausente num
+  // objeto vindo de RPC não falha, vira `undefined` e o fallback engole.
+  const { count: totalCategorias } = await supabase
+    .from('categoria')
+    .select('*', { count: 'exact', head: true })
+
   const { count: pendentesNome } = await supabase
     .from('solicitacao_nome')
     .select('*', { count: 'exact', head: true })
@@ -39,7 +47,7 @@ export default async function AdminPage() {
       detalhe: 'editar, fechar ou reabrir qualquer turma' },
     { href: '/admin/certificados', Icon: Award, titulo: 'Certificados', valor: v.certificadosAtivos,
       detalhe: `${v.certificadosRevogados} revogados` },
-    { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: (v as any).categorias ?? 0,
+    { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: totalCategorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
     { href: '/admin/configuracao', Icon: Settings, titulo: 'Configuração', valor: null,
       detalhe: 'dados que vão impressos no certificado' },
