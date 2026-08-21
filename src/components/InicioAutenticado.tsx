@@ -68,8 +68,8 @@ const dataHora = (d: string) =>
   })
 
 export default function InicioAutenticado({
-  nome, inicio, vitrine,
-}: { nome: string; inicio: Inicio; vitrine: Vitrine }) {
+  nome, inicio, vitrine, falhou = false,
+}: { nome: string; inicio: Inicio; vitrine: Vitrine; falhou?: boolean }) {
   const emAndamento = inicio.emAndamento ?? []
   const encontros = inicio.proximosEncontros ?? []
   const presenca = inicio.presencaPendente ?? []
@@ -90,6 +90,16 @@ export default function InicioAutenticado({
       <h1 className="font-display text-2xl font-semibold text-ink md:text-3xl">
         {primeiroNome ? `Olá, ${primeiroNome}` : 'Início'}
       </h1>
+
+      {/* Mostrar "0h" quando a consulta falhou é pior do que não mostrar nada:
+          o número parece um fato e a pessoa acredita nele. */}
+      {falhou && (
+        <p className="mt-4 rounded-lg border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
+          Não foi possível carregar o seu resumo agora. Os números abaixo podem estar
+          desatualizados — seus cursos e certificados continuam corretos em Meus cursos e
+          Certificados.
+        </p>
+      )}
 
       {/* ---------- o que exige ação ---------- */}
       {(encontros.length > 0 || chamadas.length > 0 || pendenciasCoord > 0) && (
@@ -328,6 +338,7 @@ export default function InicioAutenticado({
       )}
 
       {/* ---------- rodapé de números ---------- */}
+      {!falhou && (
       <section className="mt-10 grid gap-4 sm:grid-cols-3">
         <Numero
           Icon={Clock}
@@ -357,6 +368,7 @@ export default function InicioAutenticado({
           />
         )}
       </section>
+      )}
     </div>
   )
 }

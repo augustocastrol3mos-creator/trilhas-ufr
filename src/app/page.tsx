@@ -14,15 +14,23 @@ export default async function Home() {
   const user = await sessaoAtual()
 
   if (user) {
-    const [{ data: inicio }, { data: vitrine }] = await Promise.all([
-      supabase.rpc('meu_inicio'),
-      supabase.rpc('vitrine_inicio'),
-    ])
+    const [{ data: inicio, error: erroInicio }, { data: vitrine, error: erroVitrine }] =
+      await Promise.all([
+        supabase.rpc('meu_inicio'),
+        supabase.rpc('vitrine_inicio'),
+      ])
+
+    // Engolir o erro da RPC faz a tela mostrar zeros em vez de avisar que algo
+    // quebrou — foi o que escondeu o defeito dos avisos, e agora escondeu este.
+    // Vai para os logs da Vercel sem derrubar a página.
+    if (erroInicio) console.error('meu_inicio:', erroInicio.message)
+    if (erroVitrine) console.error('vitrine_inicio:', erroVitrine.message)
     return (
       <InicioAutenticado
         nome={user.nome}
         inicio={(inicio ?? {}) as Inicio}
         vitrine={(vitrine ?? {}) as Vitrine}
+        falhou={Boolean(erroInicio)}
       />
     )
   }
