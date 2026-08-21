@@ -7,6 +7,7 @@ import PainelCurso from './PainelCurso'
 import AdicionarBloco from './AdicionarBloco'
 import NovoModulo from './NovoModulo'
 import Reordenar from './Reordenar'
+import EditorCapa from './EditorCapa'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export default async function EditorCursoPage({
 
   const { data: curso } = await supabase
     .from('curso')
-    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final')
+    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final, capa_url, categoria(nome)')
     .eq('id', id)
     .single()
 
@@ -52,6 +53,15 @@ export default async function EditorCursoPage({
           <Users className="h-3.5 w-3.5" />
           Turmas
         </Link>
+      </div>
+
+      <div className="mt-6">
+        <EditorCapa
+          cursoId={id}
+          titulo={(curso as any).titulo}
+          categoria={(curso as any).categoria?.nome ?? null}
+          capaUrl={(curso as any).capa_url ?? null}
+        />
       </div>
 
       <PainelCurso

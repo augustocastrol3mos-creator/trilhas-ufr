@@ -6,11 +6,12 @@ import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import { autorizarPublicacao } from '../actions'
 import GestaoCurso from './GestaoCurso'
+import Destaque from './Destaque'
 
 export default function CardCurso({
   curso, autor, diagnostico,
 }: {
-  curso: { id: string; titulo: string; descricao: string | null; status: string; modalidade: string; carga_horaria: number }
+  curso: { id: string; titulo: string; descricao: string | null; status: string; modalidade: string; carga_horaria: number; destaque_nota?: string | null }
   autor?: { nome_completo: string; email: string }
   diagnostico?: { pode: boolean; turmas: number; matriculas: number; certificados: number }
 }) {
@@ -94,6 +95,12 @@ export default function CardCurso({
       )}
 
       {erro && <p className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{erro}</p>}
+
+      <Destaque
+        cursoId={curso.id}
+        nota={curso.destaque_nota ?? null}
+        publicado={curso.status === 'publicado'}
+      />
 
       {diagnostico && <GestaoCurso curso={curso} diagnostico={diagnostico} />}
     </li>

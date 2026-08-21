@@ -9,7 +9,7 @@ export default async function AdminCursosPage() {
   const supabase = await createClient()
   const { data: cursos } = await supabase
     .from('curso')
-    .select('id, titulo, descricao, status, modalidade, carga_horaria, autor_id')
+    .select('id, titulo, descricao, status, modalidade, carga_horaria, autor_id, destaque_nota')
     .order('criado_em', { ascending: false })
 
   const { data: autores } = await supabase.from('usuario').select('id, nome_completo, email')

@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { Clock, ChevronRight, CheckCircle2, Award } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
+import CapaCurso from '@/components/CapaCurso'
 
 export const dynamic = 'force-dynamic'
 
 type Turma = { id: string }
 type CursoRow = {
   id: string
+  capa_url: string | null
   slug: string
   titulo: string
   descricao: string | null
@@ -28,7 +30,7 @@ export default async function CursosPage({
   const { data, error } = await supabase
     .from('curso')
     .select(
-      'id, slug, titulo, descricao, carga_horaria, modalidade, categoria(nome, slug), turma(id)'
+      'id, slug, titulo, descricao, carga_horaria, modalidade, capa_url, categoria(nome, slug), turma(id)'
     )
     .eq('status', 'publicado')
     .order('titulo')
@@ -147,8 +149,16 @@ export default async function CursosPage({
                   sem empilhar formulários dentro do cartão. */}
               <Link
                 href={`/cursos/${c.slug}`}
-                className="flex h-full flex-col rounded-lg border border-border bg-surface p-5 transition-colors hover:border-primary"
+                className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-primary"
               >
+                <CapaCurso
+                  titulo={c.titulo}
+                  capaUrl={c.capa_url}
+                  categoria={c.categoria?.nome ?? null}
+                  className="h-32 w-full"
+                />
+
+                <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-xs font-medium text-primary">
                     {c.categoria?.nome ?? 'Sem categoria'}
@@ -178,6 +188,7 @@ export default async function CursosPage({
                     Ver curso
                     <ChevronRight className="h-3.5 w-3.5" />
                   </span>
+                </div>
                 </div>
               </Link>
             </li>

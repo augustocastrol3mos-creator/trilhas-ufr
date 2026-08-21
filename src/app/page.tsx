@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import AcessoHero from '@/components/AcessoHero'
 import GrafismoHero from '@/components/GrafismoHero'
 import { sessaoAtual } from '@/lib/auth'
+import InicioAutenticado, { type Inicio, type Vitrine } from '@/components/InicioAutenticado'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,19 @@ export default async function Home() {
   const supabase = await createClient()
   const user = await sessaoAtual()
 
-  if (user) return <HomeAutenticada />
+  if (user) {
+    const [{ data: inicio }, { data: vitrine }] = await Promise.all([
+      supabase.rpc('meu_inicio'),
+      supabase.rpc('vitrine_inicio'),
+    ])
+    return (
+      <InicioAutenticado
+        nome={user.nome}
+        inicio={(inicio ?? {}) as Inicio}
+        vitrine={(vitrine ?? {}) as Vitrine}
+      />
+    )
+  }
 
   const { data: cursos } = await supabase
     .from('curso')
@@ -312,53 +325,3 @@ function Modalidade({
 }
 
 /** Home de quem já está autenticado: atalhos, sem discurso de apresentação. */
-function HomeAutenticada() {
-  return (
-    <div>
-      <div className="rounded-lg border border-border bg-surface p-8">
-        <span className="inline-block rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary-dark">
-          Extensão universitária
-        </span>
-        <h1 className="mt-4 font-display text-2xl font-semibold text-ink md:text-3xl">
-          Continue de onde parou
-        </h1>
-        <p className="mt-3 max-w-xl text-muted">
-          Suas trilhas em andamento, os cursos abertos e os certificados já emitidos.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/meus-cursos"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
-          >
-            Minhas trilhas
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/cursos"
-            className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-ink hover:border-primary"
-          >
-            Ver catálogo
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Atalho href="/cursos" Icon={MapPin} titulo="Catálogo" texto="Cursos abertos para inscrição." />
-        <Atalho href="/certificados" Icon={Award} titulo="Certificados" texto="Emitidos e prontos para baixar." />
-        <Atalho href="/validar" Icon={ShieldCheck} titulo="Validar" texto="Conferir um certificado por código." />
-      </div>
-    </div>
-  )
-}
-
-function Atalho({
-  href, Icon, titulo, texto,
-}: { href: string; Icon: typeof Route; titulo: string; texto: string }) {
-  return (
-    <Link href={href} className="rounded-lg border border-border bg-surface p-5 hover:border-border-strong">
-      <Icon className="h-5 w-5 text-primary" />
-      <p className="mt-3 text-sm font-medium text-ink">{titulo}</p>
-      <p className="mt-1 text-sm text-muted">{texto}</p>
-    </Link>
-  )
-}

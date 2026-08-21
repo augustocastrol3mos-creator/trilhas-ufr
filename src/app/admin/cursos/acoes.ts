@@ -41,3 +41,16 @@ export async function excluirCurso(
   revalidatePath('/cursos')
   return { ok: true }
 }
+
+export async function definirDestaque(
+  cursoId: string, nota: string
+): Promise<Resposta> {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('definir_destaque', {
+    p_curso: cursoId, p_nota: nota,
+  })
+  if (error) return { ok: false, erro: error.message }
+  revalidatePath('/admin/cursos')
+  revalidatePath('/')
+  return { ok: true }
+}
