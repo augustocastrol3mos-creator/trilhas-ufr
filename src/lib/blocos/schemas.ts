@@ -30,6 +30,10 @@ export const materialSchema = z.object({
     path: z.string().min(1),
     tamanhoBytes: z.number().int().positive(),
   })).min(1).max(10),
+  // Exceção, não padrão. O comportamento natural — o material destravar junto
+  // com o módulo — já é o correto; isto promove um arquivo para "disponível
+  // desde o começo", como um guia do curso ou um glossário.
+  sempreDisponivel: z.boolean().default(false),
 })
 
 const alternativaPublica = z.object({ id: z.string(), texto: z.string() })

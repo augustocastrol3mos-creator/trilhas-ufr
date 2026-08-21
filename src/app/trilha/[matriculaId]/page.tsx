@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, CalendarClock, Check, Clock, Lock, PlayCircle } from 'lucide-react'
+import { ArrowRight, CalendarClock, Check, ChevronDown, Clock, FolderOpen, Info, Lock, PlayCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import type { ModuloTrilha } from '@/lib/blocos/schemas'
 import { sessaoAtual } from '@/lib/auth'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +29,7 @@ export default async function TrilhaPage({
     await Promise.all([
       supabase
         .from('matricula')
-        .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
+        .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade, apresentacao))')
         .eq('id', matriculaId)
         .eq('usuario_id', user.id)
         .single(),
@@ -67,6 +69,28 @@ export default async function TrilhaPage({
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">{curso?.titulo}</h1>
+
+      {/* Apresentação: aberta enquanto o aluno não começou, recolhida depois.
+          O estado sai de `totalFeitos`, que a página já calcula — nada de
+          guardar "já viu isso" em lugar nenhum. */}
+      {(curso as any)?.apresentacao && (
+        <details open={totalFeitos === 0} className="group mt-4">
+          <summary className="cursor-pointer list-none rounded-lg border border-border bg-surface px-4 py-3 text-sm font-medium text-ink hover:border-primary">
+            <span className="flex items-center gap-2">
+              <Info className="h-4 w-4 text-primary" aria-hidden="true" />
+              Sobre este curso
+              <ChevronDown className="ml-auto h-4 w-4 text-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+            </span>
+          </summary>
+          <div className="rounded-b-lg border border-t-0 border-border bg-surface px-4 pb-4 pt-1">
+            <article className="prose prose-sm prose-neutral max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {(curso as any).apresentacao}
+              </ReactMarkdown>
+            </article>
+          </div>
+        </details>
+      )}
 
       {/* Prazo invisível é armadilha: o aluno precisa saber quanto tempo tem
           ANTES de perder, não depois. */}
@@ -111,6 +135,14 @@ export default async function TrilhaPage({
         </div>
         <span className="shrink-0 text-sm font-medium text-muted">{pctGeral}%</span>
       </div>
+
+      <Link
+        href={`/trilha/${matriculaId}/materiais`}
+        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+      >
+        <FolderOpen className="h-3.5 w-3.5" aria-hidden="true" />
+        Materiais do curso
+      </Link>
 
       {/* Continuar de onde parou */}
       {atual && (

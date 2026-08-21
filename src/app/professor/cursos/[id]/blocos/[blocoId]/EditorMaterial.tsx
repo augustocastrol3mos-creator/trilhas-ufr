@@ -83,6 +83,23 @@ export default function EditorMaterial({
         ))}
       </ul>
 
+      <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-md border border-border bg-canvas p-3">
+        <input
+          type="checkbox"
+          checked={Boolean(config.sempreDisponivel)}
+          onChange={(e) => set({ sempreDisponivel: e.target.checked })}
+          className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+        />
+        <span className="text-sm text-ink">
+          Disponível desde o começo do curso
+          <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+            Por padrão, o material libera junto com o módulo dele. Marque para o aluno
+            baixar desde o primeiro dia — útil para guia do curso, glossário ou planilha
+            modelo. Deixe desmarcado se o arquivo só faz sentido depois de alguma etapa.
+          </span>
+        </span>
+      </label>
+
       {arquivos.length === 0 && (
         <p className="mt-3 rounded-md border border-dashed border-border-strong p-4 text-center text-sm text-subtle">
           Nenhum arquivo ainda.
