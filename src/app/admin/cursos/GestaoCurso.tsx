@@ -28,6 +28,7 @@ export default function GestaoCurso({
   const [painel, setPainel] = useState<'nenhum' | 'arquivar' | 'excluir'>('nenhum')
   const [motivo, setMotivo] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
+  const [bloquear, setBloquear] = useState(false)
 
   const arquivado = curso.status === 'arquivado'
 
@@ -105,6 +106,48 @@ export default function GestaoCurso({
             <li>· Reversível: desarquivar devolve o curso para rascunho.</li>
           </ul>
 
+          {/* A pergunta que a coordenação está respondendo implicitamente ao
+              arquivar — melhor torná-la explícita do que escolher por ela. */}
+          <fieldset className="mt-4 rounded-md border border-border bg-surface p-3">
+            <legend className="px-1 text-xs font-medium text-muted">
+              E quem já está matriculado?
+            </legend>
+
+            <label className="flex cursor-pointer items-start gap-2.5 py-1">
+              <input
+                type="radio"
+                name="conclusao"
+                checked={!bloquear}
+                onChange={() => setBloquear(false)}
+                className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+              />
+              <span className="text-sm text-ink">
+                Pode concluir normalmente
+                <span className="mt-0.5 block text-xs text-muted">
+                  Para quando o curso apenas não será mais ofertado. Quem está no meio
+                  termina e recebe o certificado.
+                </span>
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-2.5 py-1">
+              <input
+                type="radio"
+                name="conclusao"
+                checked={bloquear}
+                onChange={() => setBloquear(true)}
+                className="mt-0.5 h-4 w-4 accent-[var(--color-primary)]"
+              />
+              <span className="text-sm text-ink">
+                Não pode mais concluir
+                <span className="mt-0.5 block text-xs text-muted">
+                  Para quando o conteúdo está errado ou desatualizado e ninguém mais deve
+                  se certificar por ele. Certificados já emitidos não são afetados.
+                </span>
+              </span>
+            </label>
+          </fieldset>
+
           <label className="mt-3 block text-xs font-medium text-muted">
             Motivo (fica na auditoria)
             <input
@@ -116,7 +159,7 @@ export default function GestaoCurso({
           </label>
 
           <button
-            onClick={() => rodar(() => arquivarCurso(curso.id, motivo))}
+            onClick={() => rodar(() => arquivarCurso(curso.id, motivo, bloquear))}
             disabled={pendente || !motivo.trim()}
             className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
           >

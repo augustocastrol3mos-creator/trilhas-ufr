@@ -7,11 +7,14 @@ import { createClient } from '@/lib/supabase/server'
 // passa no `next dev` e quebra no `next build` — seção 9 do ESTADO_DO_PROJETO.
 type Resposta = { ok: boolean; erro?: string }
 
-export async function arquivarCurso(cursoId: string, motivo: string): Promise<Resposta> {
+export async function arquivarCurso(
+  cursoId: string, motivo: string, bloquearConclusao = false
+): Promise<Resposta> {
   const supabase = await createClient()
   const { error } = await supabase.rpc('arquivar_curso', {
     p_curso: cursoId,
     p_motivo: motivo,
+    p_bloquear_conclusao: bloquearConclusao,
   })
   if (error) return { ok: false, erro: error.message }
   revalidatePath('/admin/cursos')

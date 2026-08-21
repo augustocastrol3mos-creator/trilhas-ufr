@@ -23,15 +23,17 @@ export default async function TrilhaPage({
   // custavam duas viagens de rede; em paralelo, uma. Não há risco de vazamento
   // por disparar a RPC antes da checagem de dono — modulos_trilha valida
   // e_dono_matricula por dentro, e o resultado é descartado no notFound().
-  const [{ data: matricula }, { data, error }] = await Promise.all([
-    supabase
-      .from('matricula')
-      .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
-      .eq('id', matriculaId)
-      .eq('usuario_id', user.id)
-      .single(),
-    supabase.rpc('modulos_trilha', { p_matricula: matriculaId }),
-  ])
+  const [{ data: matricula }, { data, error }, { data: situacaoRaw }] =
+    await Promise.all([
+      supabase
+        .from('matricula')
+        .select('id, status, turma(identificador, encontro_data, encontro_local, curso(titulo, modalidade))')
+        .eq('id', matriculaId)
+        .eq('usuario_id', user.id)
+        .single(),
+      supabase.rpc('modulos_trilha', { p_matricula: matriculaId }),
+      supabase.rpc('situacao_matricula', { p_matricula: matriculaId }),
+    ])
 
   if (!matricula) notFound()
 
@@ -44,6 +46,14 @@ export default async function TrilhaPage({
   }
 
   const modulos = (data ?? []) as ModuloTrilha[]
+
+  const sit = (situacaoRaw ?? {}) as {
+    expiraEm?: string | null
+    expirada?: boolean
+    diasRestantes?: number | null
+    cursoArquivado?: boolean
+    bloqueada?: boolean
+  }
   const curso = (matricula as any).turma?.curso
   const turma = (matricula as any).turma
 
@@ -57,6 +67,39 @@ export default async function TrilhaPage({
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">{curso?.titulo}</h1>
+
+      {/* Prazo invisível é armadilha: o aluno precisa saber quanto tempo tem
+          ANTES de perder, não depois. */}
+      {sit.bloqueada ? (
+        <p className="mt-4 rounded-lg border border-danger bg-danger-soft px-4 py-3 text-sm leading-relaxed text-ink">
+          <strong>Este curso foi encerrado pela coordenação</strong> e não aceita mais
+          conclusões. Você pode rever o conteúdo, mas não é possível avançar nem emitir
+          certificado. Procure a coordenação se tiver dúvida.
+        </p>
+      ) : sit.expirada ? (
+        <p className="mt-4 rounded-lg border border-danger bg-danger-soft px-4 py-3 text-sm leading-relaxed text-ink">
+          <strong>O prazo para concluir este curso terminou.</strong> Seu progresso está
+          guardado — inscreva-se novamente no catálogo para retomar de onde parou, com um
+          prazo novo.
+        </p>
+      ) : sit.expiraEm ? (
+        <p
+          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+            (sit.diasRestantes ?? 99) <= 7
+              ? 'border-accent bg-accent-soft text-ink'
+              : 'border-border bg-surface text-muted'
+          }`}
+        >
+          {(sit.diasRestantes ?? 0) <= 0
+            ? 'Último dia para concluir este curso.'
+            : `Você tem ${sit.diasRestantes} ${sit.diasRestantes === 1 ? 'dia' : 'dias'} para concluir, até ${new Date(sit.expiraEm).toLocaleDateString('pt-BR')}.`}
+        </p>
+      ) : sit.cursoArquivado ? (
+        <p className="mt-4 rounded-lg border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-muted">
+          Este curso não é mais ofertado, mas <strong className="text-ink">você pode
+          concluí-lo normalmente</strong> e receber o certificado.
+        </p>
+      ) : null}
 
       {/* Progresso geral do curso */}
       <div className="mt-4 flex items-center gap-3">

@@ -17,3 +17,17 @@ export async function salvarCapa(
   revalidatePath('/')
   return { ok: true }
 }
+
+export async function salvarPrazo(
+  cursoId: string, dias: number | null
+): Promise<{ ok: boolean; erro?: string }> {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('curso')
+    .update({ prazo_conclusao_dias: dias })
+    .eq('id', cursoId)
+
+  if (error) return { ok: false, erro: error.message }
+  revalidatePath(`/professor/cursos/${cursoId}`)
+  return { ok: true }
+}
