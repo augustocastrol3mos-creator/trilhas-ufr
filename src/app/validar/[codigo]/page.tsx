@@ -57,6 +57,24 @@ export default async function ValidarPage({
           <Linha rotulo="Código" valor={c.codigo} mono />
         </dl>
 
+        <div className="mt-6 rounded-lg border border-border bg-canvas p-4">
+          <p className="text-sm font-medium text-ink">Verificação independente</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            Além desta página, o certificado existe como credencial assinada no padrão
+            Open Badges 3.0. O arquivo carrega os próprios dados e uma assinatura
+            criptográfica: quem o guarda consegue conferi-lo mesmo que esta plataforma
+            deixe de existir, e qualquer alteração no conteúdo invalida a assinatura.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm font-medium">
+            <a href={`/api/credencial/${c.codigo}`} className="text-primary hover:underline">
+              Baixar credencial assinada
+            </a>
+            <a href="/emissor/chaves" className="text-muted hover:text-ink hover:underline">
+              Chave pública do emissor
+            </a>
+          </div>
+        </div>
+
         {!c.valido && (
           <p className="mt-6 rounded-md bg-danger-soft p-3 text-sm text-danger">
             Revogado em {new Date(c.revogadoEm).toLocaleDateString('pt-BR')}

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Users, Presentation } from 'lucide-react'
+import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Settings, Download, LifeBuoy, Users, Presentation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +41,12 @@ export default async function AdminPage() {
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: (v as any).categorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
+    { href: '/admin/configuracao', Icon: Settings, titulo: 'Configuração', valor: null,
+      detalhe: 'dados que vão impressos no certificado' },
+    { href: '/admin/dados', Icon: Download, titulo: 'Exportar dados', valor: null,
+      detalhe: 'livro de certificados, matrículas e cursos em CSV' },
+    { href: '/admin/manual', Icon: LifeBuoy, titulo: 'Manual da coordenação', valor: null,
+      detalhe: 'como operar a plataforma e o que fazer quando algo der errado' },
     { href: '/admin/solicitacoes', Icon: PencilLine, titulo: 'Alterações de nome', valor: pendentesNome ?? 0,
       detalhe: 'pedidos de correção aguardando análise' },
     { href: '/admin/avisos', Icon: Megaphone, titulo: 'Avisos', valor: totalAvisos ?? 0,
@@ -53,8 +59,8 @@ export default async function AdminPage() {
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">Coordenação</h1>
       <p className="mt-1 text-sm text-muted">
-        Atos que só a coordenação pode praticar: conceder papéis, autorizar publicação e
-        revogar certificados.
+        Atos que só a coordenação pode praticar. Se for sua primeira vez por aqui,
+        comece pelo manual.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -67,8 +73,14 @@ export default async function AdminPage() {
             }`}
           >
             <Icon className={`h-5 w-5 ${alerta ? 'text-accent' : 'text-primary'}`} />
-            <p className="mt-3 font-display text-2xl font-semibold text-ink">{valor ?? 0}</p>
-            <p className="text-sm font-medium text-ink">{titulo}</p>
+            {/* valor null = cartão de ação, não contador. Mostrar "0" ali daria
+                a impressão de que não há nada a fazer naquela tela. */}
+            {valor != null && (
+              <p className="mt-3 font-display text-2xl font-semibold text-ink">{valor}</p>
+            )}
+            <p className={`text-sm font-medium text-ink ${valor == null ? 'mt-3' : ''}`}>
+              {titulo}
+            </p>
             <p className="mt-1 text-xs text-subtle">{detalhe}</p>
           </Link>
         ))}
