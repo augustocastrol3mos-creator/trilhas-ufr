@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
 
 async function buscar(formData: FormData) {
   'use server'
@@ -29,6 +30,13 @@ export default function ValidarBuscaPage() {
           </button>
         </form>
       </div>
-    </div>
+      <p className="mt-6 text-sm text-muted">
+        Recebeu o arquivo <code className="text-ink">.json</code> de uma credencial?{' '}
+        <Link href="/validar/arquivo" className="font-medium text-primary hover:underline">
+          Verifique a assinatura dele
+        </Link>
+        .
+      </p>
+</div>
   )
 }

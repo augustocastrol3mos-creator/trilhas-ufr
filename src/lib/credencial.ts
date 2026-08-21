@@ -175,3 +175,90 @@ export function chavePublicaJwk(): Record<string, unknown> | null {
     return null
   }
 }
+
+/* ------------------------------------------------------------------------
+ * VERIFICAÇÃO
+ * ------------------------------------------------------------------------ */
+
+import { createPublicKey as _pub, verify as _verify } from 'node:crypto'
+
+const doB64url = (s: string) => Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/'), 'base64')
+
+export type Resultado = {
+  assinaturaValida: boolean
+  motivo: string
+  emissor?: string
+  credencial?: Record<string, unknown>
+  emitidoPara?: string
+  curso?: string
+  codigo?: string
+  revogado?: boolean
+}
+
+/**
+ * Verifica uma credencial assinada contra uma chave pública em JWK.
+ *
+ * Repare no que ISTO NÃO FAZ: não consulta o banco, não consulta a internet,
+ * não depende de nada além dos dois argumentos. É essa propriedade que torna a
+ * credencial verificável mesmo depois que a plataforma deixar de existir.
+ *
+ * O que a assinatura prova: que este arquivo foi emitido por quem detém a
+ * chave privada correspondente, e que nem um caractere mudou desde então.
+ * O que ela NÃO prova: que o certificado continua válido hoje — revogação é
+ * um fato posterior, e por isso o resultado também informa se a credencial
+ * nasceu marcada como revogada.
+ */
+export function verificarCredencial(
+  arquivo: unknown,
+  jwk: Record<string, unknown>
+): Resultado {
+  const doc = arquivo as Record<string, any>
+
+  const jws = doc?.proof?.jws
+  if (typeof jws !== 'string') {
+    return {
+      assinaturaValida: false,
+      motivo:
+        'Este arquivo não contém assinatura. Ele pode ser uma credencial emitida antes de a assinatura ser configurada, ou um arquivo montado por outra pessoa.',
+    }
+  }
+
+  const partes = jws.split('.')
+  if (partes.length !== 3) {
+    return { assinaturaValida: false, motivo: 'A assinatura está malformada.' }
+  }
+
+  try {
+    const chave = _pub({ key: jwk as any, format: 'jwk' })
+    const entrada = Buffer.from(`${partes[0]}.${partes[1]}`)
+    const ok = _verify(null, entrada, chave, doB64url(partes[2]))
+
+    if (!ok) {
+      return {
+        assinaturaValida: false,
+        motivo:
+          'A assinatura NÃO confere. Ou o conteúdo foi alterado depois de emitido, ou o arquivo foi assinado por outra chave.',
+      }
+    }
+
+    const corpo = JSON.parse(doB64url(partes[1]).toString('utf8'))
+    const vc = corpo?.vc ?? {}
+    const t = vc?.trilhas ?? {}
+
+    return {
+      assinaturaValida: true,
+      motivo: 'Assinatura confere: o conteúdo é autêntico e não foi alterado.',
+      emissor: corpo?.iss,
+      credencial: vc,
+      emitidoPara: vc?.credentialSubject?.identifier?.[0]?.identityHash,
+      curso: vc?.credentialSubject?.achievement?.name,
+      codigo: t?.codigoValidacao,
+      revogado: Boolean(t?.revogado),
+    }
+  } catch (e) {
+    return {
+      assinaturaValida: false,
+      motivo: `Não foi possível verificar: ${(e as Error).message}`,
+    }
+  }
+}
