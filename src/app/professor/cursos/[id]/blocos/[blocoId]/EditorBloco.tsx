@@ -6,6 +6,7 @@ import { Copy, Plus, Trash2 } from 'lucide-react'
 import { salvarBloco, excluirBloco } from '@/app/professor/cursos/actions'
 import type { TipoBloco } from '@/lib/blocos/schemas'
 import EditorMaterial from './EditorMaterial'
+import EditorMarkdown from '@/components/EditorMarkdown'
 
 const campo = 'mt-1.5 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink'
 const rotulo = 'block text-sm font-medium text-ink'
@@ -74,15 +75,16 @@ export default function EditorBloco({
       <div className="rounded-lg border border-border bg-surface p-5">
         {bloco.tipo === 'texto' && (
           <>
-            <label className={rotulo}>Conteúdo em Markdown</label>
-            <textarea
-              value={config.markdown ?? ''}
-              onChange={(e) => set({ markdown: e.target.value })}
-              rows={16}
-              className={`${campo} font-mono text-xs`}
-            />
-            <p className="mt-1 text-xs text-subtle">
-              Use ## para subtítulos, **negrito**, listas com - e &gt; para citações.
+            <label className={rotulo}>Conteúdo da etapa</label>
+            <div className="mt-1.5">
+              <EditorMarkdown
+                valor={config.markdown ?? ''}
+                aoMudar={(v) => set({ markdown: v })}
+              />
+            </div>
+            <p className="mt-2 text-xs text-subtle">
+              O tempo mínimo de leitura é calculado a partir do tamanho do texto — o aluno
+              não consegue marcar como concluído antes disso.
             </p>
           </>
         )}
