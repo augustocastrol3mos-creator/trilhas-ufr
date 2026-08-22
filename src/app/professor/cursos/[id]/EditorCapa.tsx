@@ -66,72 +66,79 @@ export default function EditorCapa({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-5">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Capa</h2>
+    <div className="flex h-full flex-col rounded-lg border border-border bg-surface p-5">
+      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+        <ImagePlus className="h-3.5 w-3.5" aria-hidden="true" />
+        Capa do curso
+      </h2>
 
-      <div className="mt-3 flex flex-wrap items-start gap-4">
-        <CapaCurso
-          titulo={titulo}
-          capaUrl={capaUrl}
-          categoria={categoria}
-          className="h-24 w-40 shrink-0 rounded-md"
+      {/* Capa em cima, controles embaixo — não lado a lado. Em coluna estreita,
+          imagem + três parágrafos disputando o mesmo espaço apertava os dois. */}
+      <CapaCurso
+        titulo={titulo}
+        capaUrl={capaUrl}
+        categoria={categoria}
+        className="mt-4 h-28 w-full rounded-md"
+      />
+
+      {erro && (
+        <p className="mt-3 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{erro}</p>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <input
+          ref={input}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) enviar(f)
+            e.target.value = ''
+          }}
         />
+        <button
+          onClick={() => input.current?.click()}
+          disabled={enviando || pendente}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink hover:bg-canvas disabled:opacity-50"
+        >
+          <ImagePlus className="h-3.5 w-3.5" aria-hidden="true" />
+          {enviando || pendente ? 'Enviando…' : capaUrl ? 'Trocar imagem' : 'Enviar imagem'}
+        </button>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted">
-            {capaUrl
-              ? 'Esta é a imagem que aparece no catálogo e na página inicial.'
-              : 'Seu curso já tem uma capa gerada automaticamente — ela aparece assim no catálogo. Envie uma imagem só se quiser substituí-la.'}
-          </p>
-          <p className="mt-1 text-xs text-subtle">
-            Proporção larga (cerca de 5:2), até 2 MB. A capa é decorativa: nada que
-            precise ser lido deve estar dentro dela.
-          </p>
-
-          {erro && (
-            <p className="mt-2 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{erro}</p>
-          )}
-
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <input
-              ref={input}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) enviar(f)
-                e.target.value = ''
-              }}
-            />
-            <button
-              onClick={() => input.current?.click()}
-              disabled={enviando || pendente}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink hover:bg-canvas disabled:opacity-50"
-            >
-              <ImagePlus className="h-3.5 w-3.5" />
-              {enviando || pendente ? 'Enviando…' : capaUrl ? 'Trocar imagem' : 'Enviar imagem'}
-            </button>
-
-            {capaUrl && (
-              <button
-                onClick={() =>
-                  iniciar(async () => {
-                    const r = await salvarCapa(cursoId, null)
-                    if (!r.ok) setErro(r.erro ?? 'nao foi possivel remover')
-                    else router.refresh()
-                  })
-                }
-                disabled={enviando || pendente}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-danger disabled:opacity-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Voltar à capa gerada
-              </button>
-            )}
-          </div>
-        </div>
+        {capaUrl && (
+          <button
+            onClick={() =>
+              iniciar(async () => {
+                const r = await salvarCapa(cursoId, null)
+                if (!r.ok) setErro(r.erro ?? 'nao foi possivel remover')
+                else router.refresh()
+              })
+            }
+            disabled={enviando || pendente}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-danger disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Voltar à gerada
+          </button>
+        )}
       </div>
+
+      <p className="mt-auto pt-4 text-xs leading-relaxed text-subtle">
+        {capaUrl ? (
+          <>
+            <strong className="text-ink">Imagem própria.</strong> É esta que aparece no
+            catálogo e na página inicial.
+          </>
+        ) : (
+          <>
+            <strong className="text-ink">Capa gerada.</strong> Seu curso já tem uma, e ela
+            aparece assim no catálogo — enviar imagem é opcional.
+          </>
+        )}
+        {' '}Proporção larga (cerca de 5:2), até 2 MB. A capa é decorativa: nada que
+        precise ser lido deve estar dentro dela.
+      </p>
     </div>
   )
 }
