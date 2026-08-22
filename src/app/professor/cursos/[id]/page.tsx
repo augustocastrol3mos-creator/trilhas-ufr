@@ -10,6 +10,7 @@ import Reordenar from './Reordenar'
 import EditorCapa from './EditorCapa'
 import PrazoConclusao from './PrazoConclusao'
 import EditorApresentacao from './EditorApresentacao'
+import EditorCompetencias from './EditorCompetencias'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export default async function EditorCursoPage({
 
   const { data: curso } = await supabase
     .from('curso')
-    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final, capa_url, prazo_conclusao_dias, apresentacao, categoria(nome)')
+    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final, capa_url, prazo_conclusao_dias, apresentacao, categoria(nome), curso_competencia(competencia_id)')
     .eq('id', id)
     .single()
 
@@ -34,6 +35,8 @@ export default async function EditorCursoPage({
     .order('ordem')
 
   const { data: validacao } = await supabase.rpc('validar_publicacao', { p_curso: id })
+
+  const { data: competencias } = await supabase.rpc('competencias_com_uso')
 
   const lista = (modulos ?? []).map((m: any) => ({
     ...m,
@@ -68,6 +71,14 @@ export default async function EditorCursoPage({
           titulo={(curso as any).titulo}
           categoria={(curso as any).categoria?.nome ?? null}
           capaUrl={(curso as any).capa_url ?? null}
+        />
+      </div>
+
+      <div className="mt-4">
+        <EditorCompetencias
+          cursoId={id}
+          disponiveis={(competencias ?? []).filter((c: any) => c.ativa) as any}
+          selecionadas={((curso as any).curso_competencia ?? []).map((x: any) => x.competencia_id)}
         />
       </div>
 

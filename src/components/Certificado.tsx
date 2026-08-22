@@ -5,6 +5,7 @@ export type CertificadoDados = {
   codigo: string
   nome_titular: string
   rga_titular: string | null
+  competencias: string[] | null
   curso_titulo: string
   carga_horaria: number
   modalidade: 'hibrido' | 'online'
@@ -159,6 +160,9 @@ export function CertificadoVerso({
         <dl className="mt-5 grid grid-cols-4 gap-x-6 gap-y-4">
           <Campo rotulo="Participante" valor={c.nome_titular} span={2} />
           {c.rga_titular && <Campo rotulo="RGA" valor={c.rga_titular} />}
+          {c.competencias && c.competencias.length > 0 && (
+            <Campo rotulo="Competências desenvolvidas" valor={c.competencias.join(' · ')} span={2} />
+          )}
           <Campo rotulo="Carga horária" valor={`${c.carga_horaria} horas`} />
           <Campo
             rotulo="Modalidade"

@@ -1,6 +1,6 @@
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
-import { AlertTriangle, Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
+import { AlertTriangle, Award, BookOpen, Clock, GraduationCap, Target } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
 import DadosPrivacidade, { type Solicitacao } from './DadosPrivacidade'
@@ -32,7 +32,7 @@ export default async function PerfilPage() {
   const supabase = await createClient()
   const user = await sessaoAtual()
 
-  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }] =
+  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }, { data: compsRaw }] =
     await Promise.all([
       supabase
         .from('usuario')
@@ -41,6 +41,7 @@ export default async function PerfilPage() {
         .single(),
       supabase.rpc('meu_percurso'),
       supabase.rpc('minha_solicitacao_dados'),
+      supabase.rpc('minhas_competencias'),
     ])
 
   const p = (percursoRaw ?? {}) as {
@@ -56,6 +57,10 @@ export default async function PerfilPage() {
   // no certificado — deixam de ser autoatendimento. A regra real está no
   // gatilho do banco; aqui só antecipamos, para não dar erro ao salvar.
   const travado = (p.matriculas ?? 0) > 0
+
+  const comps = (compsRaw ?? []) as {
+    nome: string; slug: string; horas: number; cursos: number
+  }[]
   const vazio = !perfil?.nome_completo?.trim()
 
   return (
@@ -115,6 +120,30 @@ export default async function PerfilPage() {
                   </li>
                 ))}
               </ul>
+            </>
+          )}
+
+          {comps.length > 0 && (
+            <>
+              <h3 className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                <Target className="h-3.5 w-3.5" />
+                Competências desenvolvidas
+              </h3>
+              <ul className="mt-2.5 space-y-1.5">
+                {comps.map((k) => (
+                  <li key={k.slug} className="flex items-baseline justify-between gap-4 text-sm">
+                    <span className="text-ink">{k.nome}</span>
+                    <span className="shrink-0 font-medium text-muted">
+                      {k.horas}h · {k.cursos} {k.cursos === 1 ? 'curso' : 'cursos'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs leading-relaxed text-subtle">
+                Um curso pode desenvolver mais de uma competência, e as horas dele contam
+                em cada uma — por isso a soma aqui pode passar do seu total de horas. Não é
+                erro de conta: você exercitou as duas coisas durante o mesmo curso.
+              </p>
             </>
           )}
 

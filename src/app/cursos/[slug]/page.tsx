@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Clock, MapPin, Users, CalendarDays, CheckCircle2, Award, Layers } from 'lucide-react'
+import { ArrowLeft, Clock, Target, MapPin, Users, CalendarDays, CheckCircle2, Award, Layers } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
 import { inscrever } from '../actions'
@@ -33,7 +33,7 @@ export default async function CursoPage({
   const { data: curso } = await supabase
     .from('curso')
     .select(
-      'id, slug, titulo, descricao, carga_horaria, modalidade, nota_minima_final, categoria(nome, slug), turma(id, identificador, tipo, encontro_data, encontro_local, inscricoes_ate)'
+      'id, slug, titulo, descricao, carga_horaria, modalidade, nota_minima_final, categoria(nome, slug), curso_competencia(competencia(nome, slug, numero, atributos)), turma(id, identificador, tipo, encontro_data, encontro_local, inscricoes_ate)'
     )
     .eq('slug', slug)
     .eq('status', 'publicado')
@@ -113,6 +113,28 @@ export default async function CursoPage({
             Ver meu certificado
           </Link>
         </div>
+      )}
+
+      {(c.curso_competencia ?? []).length > 0 && (
+        <section className="mt-8">
+          <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+            <Target className="h-4 w-4" />
+            Competências que este curso desenvolve
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {(c.curso_competencia ?? []).map((x: any) => (
+              <li key={x.competencia.slug} className="rounded-lg border border-border bg-surface p-4">
+                <p className="text-sm font-medium text-ink">{x.competencia.nome}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
+                  {(x.competencia.atributos ?? []).join(' · ')}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-subtle">
+            Elas ficam impressas no seu certificado.
+          </p>
+        </section>
       )}
 
       {(modulos ?? []).length > 0 && (

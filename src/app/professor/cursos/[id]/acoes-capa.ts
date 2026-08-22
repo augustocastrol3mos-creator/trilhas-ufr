@@ -45,3 +45,18 @@ export async function salvarApresentacao(
   revalidatePath(`/professor/cursos/${cursoId}`)
   return { ok: true }
 }
+
+export async function salvarCompetencias(
+  cursoId: string, ids: string[]
+): Promise<{ ok: boolean; erro?: string }> {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('definir_competencias_curso', {
+    p_curso: cursoId,
+    p_ids: ids,
+  })
+  if (error) return { ok: false, erro: error.message }
+
+  revalidatePath(`/professor/cursos/${cursoId}`)
+  revalidatePath('/cursos')
+  return { ok: true }
+}
