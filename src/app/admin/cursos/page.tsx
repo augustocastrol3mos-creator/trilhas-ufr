@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import CardCurso from './CardCurso'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminCursosPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data: cursos } = await supabase
     .from('curso')

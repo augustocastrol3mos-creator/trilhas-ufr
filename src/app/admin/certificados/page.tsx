@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import LinhaCertificado from './LinhaCertificado'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminCertificadosPage({
   searchParams,
 }: { searchParams: Promise<{ q?: string }> }) {
+  await exigirAdmin()
   const { q } = await searchParams
   const supabase = await createClient()
 

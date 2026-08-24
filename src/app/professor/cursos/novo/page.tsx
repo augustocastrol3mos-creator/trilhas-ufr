@@ -3,10 +3,12 @@ import { ArrowLeft } from 'lucide-react'
 import { criarCurso } from '@/app/professor/cursos/actions'
 import FormNovoCurso from './FormNovoCurso'
 import { createClient } from '@/lib/supabase/server'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NovoCursoPage() {
+  await exigirProfessor()
   const supabase = await createClient()
   const { data } = await supabase
     .from('categoria')

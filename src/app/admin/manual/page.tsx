@@ -2,10 +2,12 @@ import Link from 'next/link'
 import {
   ArrowLeft, BookOpen, Download, LifeBuoy, Megaphone, Settings, ShieldCheck, Users,
 } from 'lucide-react'
+import { exigirAdmin } from '@/lib/auth'
 
 export const metadata = { title: 'Manual da coordenação — Trilhas UFR' }
 
-export default function ManualPage() {
+export default async function ManualPage() {
+  await exigirAdmin()
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/admin" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">

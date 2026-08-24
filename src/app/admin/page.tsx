@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Settings, Download, LifeBuoy, Users, Presentation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data } = await supabase.rpc('admin_visao_geral')
   const v = (data ?? {}) as any

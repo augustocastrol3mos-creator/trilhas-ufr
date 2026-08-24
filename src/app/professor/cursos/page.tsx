@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { Plus, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { sessaoAtual } from '@/lib/auth'
+import { sessaoAtual, exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function MeusCursosProfessorPage() {
+  await exigirProfessor()
   const supabase = await createClient()
   const user = await sessaoAtual()
 

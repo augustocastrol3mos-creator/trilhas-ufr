@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, CircleAlert, Layers, Users } from 'lucide-react'
+import { exigirProfessor } from '@/lib/auth'
 
 export const metadata = { title: 'Guia do professor — Trilhas UFR' }
 
-export default function GuiaPage() {
+export default async function GuiaPage() {
+  await exigirProfessor()
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/professor" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">

@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { ROTULOS_TIPO } from '@/lib/blocos/defaults'
 import EditorBloco from './EditorBloco'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function BlocoPage({
   params,
 }: { params: Promise<{ id: string; blocoId: string }> }) {
+  await exigirProfessor()
   const { id, blocoId } = await params
   const supabase = await createClient()
 

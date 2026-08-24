@@ -9,9 +9,19 @@ import CapaCurso from '@/components/CapaCurso'
 
 export const dynamic = 'force-dynamic'
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: { searchParams: Promise<{ semAcesso?: string }> }) {
+  const { semAcesso } = await searchParams
   const supabase = await createClient()
   const user = await sessaoAtual()
+
+  const aviso = semAcesso ? (
+    <p className="mx-auto mt-6 max-w-5xl rounded-lg border border-accent-soft bg-accent-soft px-4 py-3 text-sm text-ink">
+      Aquela área é restrita à coordenação e aos professores. Se você deveria ter acesso,
+      peça à coordenação para conceder o papel na sua conta.
+    </p>
+  ) : null
 
   if (user) {
     const [{ data: inicio, error: erroInicio }, { data: vitrine, error: erroVitrine }] =
@@ -26,12 +36,15 @@ export default async function Home() {
     if (erroInicio) console.error('meu_inicio:', erroInicio.message)
     if (erroVitrine) console.error('vitrine_inicio:', erroVitrine.message)
     return (
+      <>
+      {aviso}
       <InicioAutenticado
         nome={user.nome}
         inicio={(inicio ?? {}) as Inicio}
         vitrine={(vitrine ?? {}) as Vitrine}
         falhou={Boolean(erroInicio)}
       />
+      </>
     )
   }
 

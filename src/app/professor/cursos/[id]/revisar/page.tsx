@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { AlertTriangle, ArrowLeft, CheckCircle2, Eye, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import PreviaAluno from './PreviaAluno'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,7 @@ type Item = { nivel: 'erro' | 'aviso'; onde: string; mensagem: string; blocoId?:
 export default async function RevisarPage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

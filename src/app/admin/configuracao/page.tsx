@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import FormConfig from './FormConfig'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ConfiguracaoPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data, error } = await supabase.rpc('diagnostico_configuracao')
   if (error) notFound()

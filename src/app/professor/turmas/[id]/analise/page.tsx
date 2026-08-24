@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { ArrowLeft, TrendingDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AnalisePage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

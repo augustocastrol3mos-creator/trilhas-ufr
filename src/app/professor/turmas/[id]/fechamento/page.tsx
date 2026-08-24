@@ -3,12 +3,14 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import TabelaFechamento, { type AlunoFechamento } from './TabelaFechamento'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function FechamentoPage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

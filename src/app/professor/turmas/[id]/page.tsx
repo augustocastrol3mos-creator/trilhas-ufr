@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, BarChart3, ClipboardCheck, CalendarCheck } from 'lucide-react'
 import ReabrirTurma from './ReabrirTurma'
 import { createClient } from '@/lib/supabase/server'
-import { sessaoAtual } from '@/lib/auth'
+import { sessaoAtual, exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +24,7 @@ type Aluno = {
 export default async function TurmaPage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

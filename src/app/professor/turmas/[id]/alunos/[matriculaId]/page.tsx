@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Check, Circle, Clock, Minus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,7 @@ const ROTULO_TIPO: Record<string, string> = {
 export default async function AlunoPage({
   params,
 }: { params: Promise<{ id: string; matriculaId: string }> }) {
+  await exigirProfessor()
   const { id, matriculaId } = await params
   const supabase = await createClient()
 

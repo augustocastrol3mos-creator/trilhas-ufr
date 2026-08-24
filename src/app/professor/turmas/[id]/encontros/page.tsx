@@ -3,12 +3,14 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import GestorEncontros, { type Aluno, type Encontro } from './GestorEncontros'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function EncontrosPage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

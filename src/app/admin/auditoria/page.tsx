@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,7 @@ const ROTULO: Record<string, { texto: string; classe: string }> = {
 }
 
 export default async function AuditoriaPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data, error } = await supabase.rpc('admin_auditoria', { p_limite: 100 })
 

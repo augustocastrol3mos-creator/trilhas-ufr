@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { ArrowLeft, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminTurmasPage() {
+  await exigirAdmin()
   const supabase = await createClient()
 
   const { data: turmas, error } = await supabase

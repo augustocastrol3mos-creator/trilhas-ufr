@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Decisao from './Decisao'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,7 @@ type Solicitacao = {
 }
 
 export default async function SolicitacoesPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data, error } = await supabase.rpc('solicitacoes_dados')
   if (error) notFound()

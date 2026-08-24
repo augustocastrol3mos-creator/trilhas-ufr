@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Users, CalendarDays, MapPin, Lock, Unlock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { criarTurma, atualizarTurma, alternarInscricoes } from './actions'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,6 +41,7 @@ export default async function TurmasPage({
   params: Promise<{ id: string }>
   searchParams: Promise<{ erro?: string }>
 }) {
+  await exigirProfessor()
   const { id } = await params
   const { erro } = await searchParams
   const supabase = await createClient()

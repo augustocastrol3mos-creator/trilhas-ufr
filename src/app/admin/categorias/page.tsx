@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import GestorCategorias, { type Categoria } from './GestorCategorias'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CategoriasPage() {
+  await exigirAdmin()
   const supabase = await createClient()
 
   // A autorização mora na RPC (e_admin). Se recusar, a tela nem renderiza.

@@ -11,12 +11,14 @@ import EditorCapa from './EditorCapa'
 import PrazoConclusao from './PrazoConclusao'
 import EditorApresentacao from './EditorApresentacao'
 import EditorCompetencias from './EditorCompetencias'
+import { exigirProfessor } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function EditorCursoPage({
   params,
 }: { params: Promise<{ id: string }> }) {
+  await exigirProfessor()
   const { id } = await params
   const supabase = await createClient()
 

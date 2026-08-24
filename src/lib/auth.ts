@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export type Usuario = {
@@ -50,3 +51,23 @@ export const sessaoAtual = cache(async (): Promise<Usuario | null> => {
     papel: data?.papel ?? 'aluno',
   }
 })
+
+/**
+ * Exige um papel, ou devolve 404.
+ *
+ * Segunda camada, deliberadamente redundante com o middleware. Middleware pode
+ * ser contornado por engano de configuração — um `matcher` mal editado, uma
+ * rota nova que ninguém lembrou de cobrir — e a falha seria silenciosa: a
+ * página simplesmente abriria. A guarda na própria tela não tem esse modo de
+ * falha.
+ *
+ * 404 e não 403: quem não é da coordenação não precisa saber que /admin existe.
+ */
+export async function exigirPapel(papeis: string[]): Promise<Usuario> {
+  const usuario = await sessaoAtual()
+  if (!usuario || !papeis.includes(usuario.papel)) notFound()
+  return usuario
+}
+
+export const exigirAdmin = () => exigirPapel(['admin'])
+export const exigirProfessor = () => exigirPapel(['instrutor', 'admin'])

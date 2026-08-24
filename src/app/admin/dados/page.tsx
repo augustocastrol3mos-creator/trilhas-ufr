@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Download, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DadosPage() {
+  await exigirAdmin()
   const supabase = await createClient()
 
   // Só para confirmar que quem abriu é coordenação — a RPC recusa os demais.

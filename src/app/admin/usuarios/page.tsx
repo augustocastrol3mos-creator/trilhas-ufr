@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import FormPapel from './FormPapel'
+import { exigirAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,7 @@ const ROTULO: Record<string, string> = {
 }
 
 export default async function UsuariosPage() {
+  await exigirAdmin()
   const supabase = await createClient()
   const { data: usuarios } = await supabase
     .from('usuario')
