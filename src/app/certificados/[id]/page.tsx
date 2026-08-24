@@ -57,7 +57,7 @@ export default async function CertificadoPage({
             Código {c.codigo} · para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
           </p>
         </div>
-        <BotaoImprimir />
+        <BotaoImprimir codigo={c.codigo} />
       </div>
 
       {/* Compartilhar só faz sentido para certificado válido: divulgar um

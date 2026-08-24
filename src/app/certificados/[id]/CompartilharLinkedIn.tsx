@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BadgeCheck, Copy, Check, ChevronDown, FileJson, HelpCircle } from 'lucide-react'
+import { BadgeCheck, Copy, Check, ChevronDown } from 'lucide-react'
 
 /**
  * Adicionar o certificado ao LinkedIn.
@@ -29,7 +29,6 @@ export default function CompartilharLinkedIn({
   orgaoEmissor: string
   urlValidacao: string
 }) {
-  const [explicaJson, setExplicaJson] = useState(false)
   const [aberto, setAberto] = useState(false)
   const [copiado, setCopiado] = useState<string | null>(null)
 
@@ -86,50 +85,7 @@ export default function CompartilharLinkedIn({
         />
       </button>
 
-      {/* Separador e não terceiro botão: o arquivo assinado é para uma minoria
-          pequena, e dar a ele o mesmo peso visual de Imprimir e LinkedIn faria
-          a maioria parar para decidir entre três coisas quando queria uma. */}
-      <span aria-hidden="true" className="mx-3 text-border-strong">·</span>
-
-      <a
-        href={`/api/credencial/${codigo}`}
-        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"
-      >
-        <FileJson className="h-3.5 w-3.5" aria-hidden="true" />
-        Arquivo assinado
-      </a>
-
-      <button
-        onClick={() => setExplicaJson((v) => !v)}
-        aria-expanded={explicaJson}
-        aria-label="O que é o arquivo assinado"
-        className="ml-1 text-muted hover:text-ink"
-      >
-        <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
       </div>
-
-      {explicaJson && (
-        <p className="mt-3 max-w-2xl rounded-lg border border-border bg-canvas p-4 text-xs leading-relaxed text-muted">
-          {/* "Credencial no padrão Open Badges 3.0" não significa nada para quem
-              nunca ouviu falar — a explicação começa pelo que o arquivo FAZ. */}
-          <strong className="text-ink">
-            É a versão do seu certificado que continua comprovável mesmo que esta
-            plataforma deixe de existir.
-          </strong>{' '}
-          O arquivo carrega os próprios dados e uma assinatura criptográfica: quem o
-          recebe consegue conferir sozinho, sem consultar nada, e alterar um único
-          caractere invalida a assinatura. Segue o padrão internacional Open Badges 3.0,
-          então outros sistemas de credenciais também conseguem lê-lo.
-          <br />
-          <br />
-          Guarde junto do PDF. Para conferir um arquivo recebido, use a{' '}
-          <a href="/validar/arquivo" className="font-medium text-primary hover:underline">
-            verificação de credencial
-          </a>
-          .
-        </p>
-      )}
 
       {aberto && (
         <div className="mt-3 rounded-lg border border-border bg-canvas p-4">
