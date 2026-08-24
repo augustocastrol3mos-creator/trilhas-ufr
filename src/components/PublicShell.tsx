@@ -57,9 +57,23 @@ export default function PublicShell({ children }: { children: React.ReactNode })
             </Coluna>
           </div>
 
-          <div className="mt-10 border-t border-deep-border pt-6">
+          <div className="mt-10 flex flex-col gap-2 border-t border-deep-border pt-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
             <p className="text-xs text-deep-muted">
               Universidade Federal de Rondonópolis · Rondonópolis, MT
+            </p>
+
+            {/* Crédito de autoria. No rodapé público e não na área logada: aqui
+                é convenção institucional, lá competiria com a interface de quem
+                está trabalhando. */}
+            <p className="text-xs leading-relaxed text-deep-muted sm:text-right">
+              Desenvolvido por{' '}
+              <span className="text-deep-foreground">Augusto Castro Lemos</span>
+              <span className="mx-1.5 hidden sm:inline">·</span>
+              <br className="sm:hidden" />
+              Projeto de extensão coordenado pelo{' '}
+              <span className="text-deep-foreground">
+                Prof. Dr. André Luís Janzkovski Cardoso
+              </span>
             </p>
           </div>
         </div>

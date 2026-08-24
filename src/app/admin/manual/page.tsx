@@ -149,6 +149,24 @@ export default async function ManualPage() {
         Faltou alguma situação aqui? Anote e peça para incluir. Este manual só é útil se
         cobrir as dúvidas que aparecem de verdade, não as que alguém imaginou.
       </p>
+
+      {/* Origem do projeto. Aqui e não numa tela de "sobre": é onde alguém que
+          herdar a plataforma daqui a alguns anos vai procurar de onde ela veio. */}
+      <div className="mt-6 border-t border-border pt-6 text-xs leading-relaxed text-subtle">
+        <p>
+          O Trilhas UFR foi desenvolvido por{' '}
+          <strong className="text-muted">Augusto Castro Lemos</strong>, durante projeto de
+          extensão coordenado pelo{' '}
+          <strong className="text-muted">Prof. Dr. André Luís Janzkovski Cardoso</strong>.
+        </p>
+        <p className="mt-1.5">
+          A documentação técnica do projeto — arquitetura, histórico de decisões e roteiro
+          de operação — está no repositório, nos arquivos{' '}
+          <code className="text-muted">ESTADO_DO_PROJETO.md</code>,{' '}
+          <code className="text-muted">ARQUITETURA.md</code> e{' '}
+          <code className="text-muted">OPERACAO.md</code>.
+        </p>
+      </div>
     </div>
   )
 }
