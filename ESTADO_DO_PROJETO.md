@@ -1,302 +1,316 @@
 # Trilhas UFR — estado do projeto
 
-Plataforma de **cursos complementares** da UFR (podendo incluir extensão), com
-trilha de aprendizado modular e certificado de validação pública. Next.js 16
-(App Router, Turbopack) + Supabase (Postgres, Auth, Storage) + Vercel.
-Em produção, testada por colegas.
+**Plataforma de cursos complementares da UFR** (podendo incluir extensão), com
+trilha modular e certificado de validação pública.
 
-**Repositório:** github.com/augustocastrol3mos-creator/trilhas-ufr (branch `main`)
-**Produção:** https://trilhas-ufr-chi.vercel.app
+| | |
+|---|---|
+| Repositório | `github.com/augustocastrol3mos-creator/trilhas-ufr` (branch `main`, público) |
+| Produção | https://trilhas-ufr-chi.vercel.app |
+| Pilha | Next.js 16 (App Router, Turbopack) · Supabase (Postgres, Auth, Storage) · Vercel |
+| Migrations | 0001 a 0039 (ver seção 5) |
+
+> **Se você é uma IA retomando este projeto, leia a seção 2 antes de qualquer
+> coisa.** Ela é o protocolo de trabalho, e ignorá-la já custou caro.
 
 ---
 
-## 1. Decisão fundadora — o que este produto É
+## 1. A decisão fundadora
 
-Não é uma plataforma de vídeos. É **um emissor de certificados com pré-requisitos
-verificáveis**. O valor está na cadeia:
+Não é uma plataforma de vídeos. É **um emissor de certificados com
+pré-requisitos verificáveis**:
 
 ```
 trilha com trava → avaliação → presença confirmada → certificado com validação pública
 ```
 
-Toda decisão de escopo deve ser filtrada por essa frase. Corolário prático: cada
-elo precisa ser **verificável pelo aluno**, não só pelo sistema. Foi por isso que
-a presença ganhou tela própria — era o único elo invisível.
-
-O público mudou de "extensão para a comunidade" para **"cursos complementares,
-podendo ter extensão"**. Isso importa: boa parte dos alunos é da própria UFR
-buscando horas complementares, o que torna a carga horária no certificado um
-número com consequência acadêmica — e é a razão de existir a trava de
-reinscrição (seção 6).
+Toda decisão de escopo passa por essa frase. Corolário: **cada elo precisa ser
+verificável pelo aluno**, não só pelo sistema — foi por isso que a presença
+ganhou tela própria.
 
 Modularidade é **composição, não extensão**: seis tipos de bloco fixos que o
-professor empilha e configura, não um sistema de plugins. É o que mantém o
-projeto no tamanho de um TCC em vez de virar um Moodle pela metade.
+professor empilha, não um sistema de plugins.
+
+**O que a plataforma NÃO faz, por decisão:** registrar curso de terceiro (ENAP,
+Bradesco, Sebrae). Quem certifica é quem ensinou e avaliou. Para comprovante
+externo existe o AC Fácil, que é outro sistema.
 
 ---
 
-## 2. Arquitetura e por que ela é assim
+## 2. Protocolo de trabalho (para IA e para humanos)
 
-- **Toda lógica sensível vive em funções do Postgres (RPC)**, não no cliente:
-  correção de quiz, cálculo de nota, trava sequencial, emissão de certificado,
-  fechamento de turma, regras de inscrição, chamada de presença. RLS é rede de
-  segurança; regra de negócio é função.
-- **O gabarito nunca sai do servidor.** `sanitizar_config()` remove o campo
-  `correta`. `bloco` não tem policy de SELECT para aluno — só chega via RPC.
-- **Nota calculada nunca é sobrescrita.** Ajustes são append-only em
-  `ajuste_nota`, com justificativa obrigatória.
-- **Certificado emitido é imutável.** Erro se corrige revogando e reemitindo.
-- **Fechamento de turma é transação única**: congela notas, grava decisões,
-  emite certificados, encerra. Tudo ou nada.
-- **Agregado sobre dados privados vive em `SECURITY DEFINER`.** Contar
-  matriculados numa turma exige ler linhas de terceiros que o RLS esconde — e
-  deve esconder. O padrão é uma função que devolve **o número**, nunca as
-  linhas: `turmas_abertas`, `turmas_do_curso`, `pode_acessar_material`,
-  `meu_resumo_presenca`, `pode_excluir_curso`.
+Estas regras nasceram de erros reais. Cada uma custou pelo menos um build
+quebrado ou um bug em produção.
 
----
+**Clone o repositório ANTES de começar, não só para conferir depois.**
+"Funcionou" e "está no GitHub" são fatos diferentes. Um lote foi construído em
+cima de código velho porque o anterior não tinha sido enviado, e sobrescreveu
+uma migration inteira.
 
-## 3. As cinco lições que custaram caro (ler antes de mexer no banco)
+**Rode `next build`, não só `tsc --noEmit`.** Typecheck não pega import de
+arquivo apagado; o build pega. (Se as fontes do Google não estiverem acessíveis
+no ambiente, um stub temporário no `layout.tsx` permite compilar.)
 
-### 3.1 RLS responde "qual LINHA", nunca "qual COLUNA"
+**Nem o build pega erro de banco.** Recursão de RLS, constraint violada,
+permissão negada — só aparecem com banco respondendo. Migration só é validada
+pelo teste real.
 
-A policy `usuario_proprio_update` com `using (id = auth.uid())` autorizava o
-update da linha inteira — **papel incluso**. Qualquer aluno virava coordenação
-com uma linha no console:
+**Zip adiciona arquivo, nunca remove.** Ao substituir um componente por outro de
+nome diferente, o antigo fica na máquina importando coisa que sumiu. Os comandos
+`git rm` vão **no topo** da mensagem, antes das instruções de extrair.
 
-```js
-supabase.from('usuario').update({ papel: 'admin' }).eq('id', meuId)
-```
+**Mande arquivo inteiro, não trecho.** Edição parcial já perdeu chave de
+fechamento várias vezes.
 
-Corrigido pela `0010`, com **trigger**. Sempre que uma tabela tiver coluna que o
-dono da linha não pode alterar (`papel`, `status`, `nota`, `autor_id`), a
-proteção vem de trigger ou GRANT por coluna. Nunca de policy.
+**Depois de cada lote:** arquivos alterados, migration a rodar, roteiro curto de
+teste — com o teste de **regressão** antes do de novidade.
 
-### 3.2 Policy que consulta tabela com RLS dispara a policy dela
-
-A `0019` acrescentou à policy de `curso` uma subconsulta em `turma`. A policy de
-`turma` já consultava `curso`. Resultado: `infinite recursion detected in policy
-for relation "turma"`, com `/cursos` e `/meus-cursos` fora do ar.
-
-**Toda checagem cruzada entre tabelas com RLS tem que morar numa função
-`SECURITY DEFINER`** — que roda como dono, ignora RLS e encerra a cadeia. É por
-isso que `e_admin()`, `e_dono_matricula()` e companhia sempre foram funções.
-Corrigido pela `0020`.
-
-### 3.3 Política de leitura ampla vaza em tela que confia só no RLS
-
-Políticas permissivas combinam com **OR**, não se escolhem. "Admin vê tudo"
-somou com "vê o que é seu" e telas que filtravam só pelo RLS passaram a mostrar
-dados alheios. Aconteceu **cinco vezes**: `/meus-cursos`, `/certificados`,
-`/professor`, `/trilha/[matriculaId]`, `/certificados/[id]`, e quase no catálogo.
-
-**Toda consulta a `matricula`, `certificado`, `curso` ou `turma` precisa de
-`.eq('usuario_id', user.id)` explícito no código.** A policy é a segunda linha
-de defesa, não a primeira.
-
-### 3.4 A ordem das checagens decide se a regra ajuda ou atrapalha
-
-Em `inscrever()`, o "já matriculado nesta turma" é a **primeira** coisa, antes
-de vaga, prazo, status e trava de reinscrição. Sem essa ordem, o aluno de uma
-turma lotada perderia acesso ao próprio curso, e o aluno aprovado perderia
-acesso ao próprio certificado. Regra nova é escrita pensando em quem está
-entrando, e quebra quem já entrou. Decidiu o desenho três vezes.
-
-### 3.5 Cascade apaga mais do que se imagina
-
-`curso → turma → matricula → certificado`, todas `on delete cascade`. Um
-`delete from curso` apagaria **certificados emitidos**, quebrando as URLs
-públicas de validação — quem tem o PDF impresso na mão bate em "não encontrado".
-
-Por isso `excluir_curso` só aceita curso com **zero matrículas**; todo o resto é
-`arquivar_curso`. Antes de expor qualquer delete, mapear a cascata.
+**Quando um bug revelar um padrão, nomeie o padrão** na seção 4, não corrija só
+o caso pontual.
 
 ---
 
-## 4. Migrations (rodar em ordem, uma vez cada)
+## 3. Arquitetura em uma página
 
-A partir da `0021` existe a tabela `migration_aplicada`. Para saber o que já
-rodou num banco:
+Detalhe completo em `ARQUITETURA.md`. O essencial:
+
+- **Toda lógica sensível vive em função do Postgres (`security definer`)**:
+  correção de quiz, cálculo de nota, emissão de certificado, fechamento de
+  turma, regras de inscrição, chamada. RLS é rede de segurança; regra de negócio
+  é função.
+- **O gabarito nunca sai do servidor.** `bloco` não tem policy de SELECT para
+  aluno; conteúdo chega sanitizado via RPC.
+- **Certificado emitido é imutável** e guarda snapshot (nome, RGA, competências,
+  assinante). Erro se corrige revogando e reemitindo.
+- **Agregado sobre dado privado vive em `security definer`**: contar
+  matriculados exige ler linhas de terceiros que o RLS esconde. O padrão é
+  devolver **o número**, nunca as linhas.
+- **Três camadas de autorização**: middleware por papel → guarda `exigirAdmin()`
+  / `exigirProfessor()` na tela → RLS. Qualquer uma sozinha resolve.
+
+---
+
+## 4. As lições que custaram caro
+
+Esta é a seção mais importante do arquivo, porque é a única que não dá para
+reconstruir lendo o código.
+
+### 4.1 RLS responde "qual LINHA", nunca "qual COLUNA"
+A policy `usuario_proprio_update (id = auth.uid())` autorizava o update da linha
+inteira — **papel incluso**. Qualquer aluno virava coordenação com uma linha no
+console. Corrigido com trigger (`0010`). Coluna que o dono da linha não pode
+alterar (`papel`, `status`, `nota`, `rga`) se protege com trigger ou GRANT por
+coluna, nunca com policy.
+
+### 4.2 Policy que consulta tabela com RLS dispara a policy dela
+A `0019` pôs subconsulta em `turma` dentro da policy de `curso`; a de `turma` já
+consultava `curso`. Recursão infinita, `/cursos` fora do ar. **Toda checagem
+cruzada entre tabelas com RLS mora em função `SECURITY DEFINER`** — que roda
+como dono, ignora RLS e encerra a cadeia. Corrigido na `0020`.
+
+### 4.3 Política de leitura ampla vaza em tela que confia só no RLS
+Policies permissivas combinam com **OR**. "Admin vê tudo" somou com "vê o que é
+seu" e telas passaram a mostrar dado alheio. **Aconteceu cinco vezes.** Toda
+consulta a `matricula`, `certificado`, `curso` ou `turma` precisa de
+`.eq('usuario_id', user.id)` explícito no código.
+
+### 4.4 A ordem das checagens decide se a regra ajuda ou atrapalha
+Em `inscrever()`, "já matriculado nesta turma" é a **primeira** coisa, antes de
+vaga, prazo e trava de reinscrição. Sem isso, o aluno de turma lotada perderia
+acesso ao próprio curso. Regra nova é escrita pensando em quem entra, e quebra
+quem já entrou. Decidiu o desenho três vezes.
+
+### 4.5 Cascade apaga mais do que se imagina
+`curso → turma → matricula → certificado`, tudo `on delete cascade`. Um
+`delete from curso` apagaria certificados emitidos e quebraria as URLs públicas.
+Por isso `excluir_curso` só aceita curso com zero matrículas.
+
+### 4.6 `array || 'literal'` é ambíguo no Postgres
+`v_pendencias text[] || 'texto'` — o Postgres lê como array‖array e tenta
+converter a frase em array (`malformed array literal`). **Sempre
+`array_append`.** Estava latente desde a `0006` e só disparou meses depois,
+derrubando a página inicial inteira, porque `meu_inicio()` chama
+`validar_publicacao()`.
+
+### 4.7 Parâmetro OUT sombreia coluna em plpgsql
+Em `returns table (id uuid, ...)`, `id` vira variável em escopo no corpo. Um
+`where id = auth.uid()` resolvia para a variável nula, não para a coluna.
+**Em função com `returns table`, qualifique toda coluna com o alias da tabela.**
+
+### 4.8 Caminho de erro que nunca executa não está testado
+As seis linhas quebradas da 4.6 passaram por build, deploy e meses de uso sem
+nunca rodar. Só a checagem de categoria, que dispara sempre, revelou.
+
+### 4.9 Engolir erro de RPC transforma bug em silêncio
+`const { data } = await supabase.rpc(...)` sem checar `error` escondeu três
+defeitos: avisos invisíveis, contadores zerados, página inicial vazia. **Sempre
+`const { data, error }` e ao menos `console.error`.**
+
+### 4.10 Duas medições, uma variável
+Um `explain analyze` foi de 9ms para 1,4ms e pareceu efeito de uma mudança no
+middleware — era cache do Postgres. Middleware não passa pelo SQL Editor.
+Descarte a primeira medição de qualquer `explain analyze`.
+
+---
+
+## 5. Migrations
+
+Registro em `migration_aplicada`. Para saber o que rodou num banco:
 
 ```sql
 select nome, aplicada_em from migration_aplicada order by nome;
 ```
 
-| | O que faz |
+| | |
 |---|---|
-| `0001_schema` | tabelas base: usuario, curso, turma, modulo, bloco, matricula, progresso_bloco |
-| `0002_functions` | RPCs da trilha: modulos_trilha, modulo_conteudo, concluir_bloco, registrar_progresso_video, submeter_quiz, inscrever |
-| `0003_rls` | RLS inicial |
-| `0004_certificados` | certificado, emissão automática, validar_certificado (público), configuracao |
-| `0005_fechamento` | pesos, ajuste_nota, fechar_turma (transação), turma_alunos |
-| `0006_autoria` | políticas de escrita, validar_publicacao, criar_curso, publicar_curso |
-| `0007_admin` | papel admin, log_admin, auditoria, revogar/reemitir, reabrir_turma |
-| `0008_trilha` | tempo estimado, devolutiva de quiz por questão |
-| `0009_professor` | análise de quiz, progresso individual, bucket `materiais` |
-| `0010_papel` | **trigger que impede o aluno de alterar o próprio papel** (ver 3.1) |
-| `0011_integridade` | fecha o bucket de materiais por matrícula/autoria; trava de relógio no progresso de vídeo |
-| `0012_quiz` | devolutiva só ao aprovar ou esgotar tentativas; lock na contagem |
-| `0013_inscricao` | aplica vagas, prazo, status da turma e curso publicado |
-| `0014_turmas` | criar/editar turma, abrir e encerrar inscrições |
-| `0015_presenca` | presença com vida própria, fora do fechamento |
-| `0016_encontros` | encontros como entidade; presença por encontro com mínimo percentual |
-| `0017_indices` | índices em chaves estrangeiras (o Postgres não cria sozinho) |
-| `0018_reinscricao` | aprovado não cursa o mesmo curso de novo |
-| `0019_arquivar` | arquivar e excluir curso (só coordenação) |
-| `0020_corrige_recursao` | **corrige a recursão de RLS que a 0019 criou** (ver 3.2) |
-| `0021_controle` | tabela `migration_aplicada` |
+| `0001`–`0009` | schema, RPCs da trilha, RLS, certificados, fechamento, autoria, admin, quiz, bucket `materiais` |
+| `0010` | trigger que impede o aluno de alterar o próprio papel (4.1) |
+| `0011` | fecha o bucket de materiais por matrícula; trava de relógio no vídeo |
+| `0012` | devolutiva do quiz só ao aprovar ou esgotar tentativas |
+| `0013` | aplica vagas, prazo, status da turma e curso publicado |
+| `0014` | criar/editar turma, abrir e encerrar inscrições |
+| `0015`–`0016` | presença fora do fechamento; encontros com mínimo percentual |
+| `0017` | índices em chaves estrangeiras |
+| `0018` | aprovado não cursa o mesmo curso de novo |
+| `0019` | arquivar e excluir curso |
+| `0020` | **corrige a recursão de RLS da 0019** (4.2) |
+| `0021` | tabela `migration_aplicada` |
+| `0022`–`0023` | categorias; publicar passa a exigir categoria |
+| `0024` | URL do AC Fácil configurável |
+| `0025`–`0026` | avisos; **correção do parâmetro OUT** (4.7) |
+| `0027` | resumo do percurso do aluno |
+| `0028`–`0029` | histórico de nome; RGA único e impresso |
+| `0030` | *absorvida pela 0031 — não existe* |
+| `0031` | solicitação de alteração de nome/RGA com aprovação |
+| `0032` | capas, destaque curado, painéis de início por papel |
+| `0033` | configuração pela interface e exportações CSV |
+| `0034` | `log_admin.alvo_id` aceita nulo |
+| `0035` | **⚠️ RODOU NO BANCO, NÃO ESTÁ VERSIONADA** — corrige o `array_append` (4.6) |
+| `0036` | prazo de conclusão; arquivar escolhe se pode concluir |
+| `0037` | apresentação do curso; prateleira de materiais |
+| `0038` | 12 competências e 75 atributos; impressas no certificado |
+| `0039` | código de certificado de 6 para 10 caracteres |
+
+**Pendência conhecida:** a `0035` foi aplicada em produção e nunca salva no
+repositório. Quem reconstruir o banco do zero terá `validar_publicacao` quebrada.
+Recuperável do banco de produção com:
+
+```sql
+select prosrc from pg_proc where proname = 'validar_publicacao';
+```
 
 ---
 
-## 5. Papéis
+## 6. Papéis
 
 | Papel | Pode |
 |---|---|
-| `aluno` (padrão) | próprio progresso, presença e certificados |
-| `instrutor` | criar/editar os próprios cursos, abrir turmas neles, chamada, fechar turma |
-| `admin` (coordenação) | tudo do instrutor em qualquer curso, conceder papéis, autorizar publicação, revogar certificado, reabrir turma, arquivar/excluir curso, auditoria |
+| `aluno` (padrão) | próprio progresso, presença, certificados, portfólio |
+| `instrutor` | criar/editar os próprios cursos, abrir turmas, chamada, fechar turma |
+| `admin` (coordenação) | tudo do instrutor em qualquer curso, papéis, publicação, revogar certificado, arquivar, avisos, categorias, configuração, exportação, auditoria |
 
-Contas de teste existem em produção, mas **credenciais não entram neste
-arquivo**: o repositório é público. Elas ficam no gerenciador de senhas de
-Augusto. Se você está lendo isto e precisa de acesso, peça — não procure aqui.
-
-**Confirmação de e-mail está desligada** no Supabase para facilitar teste. Como
-`nome_completo` vem do metadata do cadastro, o nome impresso no certificado é
-hoje **autodeclarado e não verificado**. Religar antes de uso institucional real.
+**Credenciais não entram neste arquivo** — o repositório é público. Ficam no
+gerenciador de senhas de quem administra.
 
 ---
 
-## 6. Regras de negócio que não são óbvias no schema
+## 7. Estado atual e o que falta
 
-- **Inscrição** exige: curso publicado, turma `inscricoes_abertas`, dentro do
-  prazo, com vaga, e o aluno não pode já ter sido aprovado naquele curso.
-- **Estados de turma:** `inscricoes_abertas` (aceita gente) → `em_andamento`
-  (não aceita, trilha rodando) → `encerrada` (notas congeladas, certificados
-  emitidos). Só `fechar_turma` chega no terceiro; `reabrir_turma` volta ao
-  segundo, nunca ao primeiro.
-- **Presença** é calculada, não digitada: `matricula.presenca_confirmada` vira
-  `true` quando o aluno atinge `turma.presenca_minima` (padrão 75%) dos
-  encontros. `fechar_turma` continua lendo só o booleano — foi assim que os
-  encontros entraram sem tocar na transação mais crítica do sistema.
-- **Curso arquivado** sai do catálogo mas continua legível para quem já está
-  matriculado (as três policies de leitura aceitam "sou matriculado").
-- **Quiz** libera devolutiva por questão só ao aprovar ou ao esgotar tentativas
-  (padrão 3). Antes, saber quais questões errou entregava o gabarito de
-  verdadeiro/falso na segunda tentativa.
+**Funcionalmente pronto.** Segurança auditada em duas rodadas. Nunca usado por
+turma real.
 
----
+**Antes de liberar o time (ordem obrigatória):**
 
-## 7. Os seis tipos de bloco
+1. **Livro de certificados em CSV** — já existe em `/admin/dados`; falta virar
+   rotina da coordenação
+2. **Recuperação de senha** — NÃO EXISTE. Sem isso, quem administra vira o
+   serviço de reset de senha de todo aluno
+3. **Confirmação de e-mail** — desligada no Supabase; o nome impresso no
+   certificado é autodeclarado enquanto estiver assim
+4. **Reset dos dados de teste** (`supabase/scripts/reset_piloto.sql`) — precisa
+   acontecer **antes** de o time criar cursos, ou o trabalho deles some junto
+5. **Configuração institucional** em `/admin/configuracao` — `url_base` ainda
+   pode estar em `localhost`, o que faria o QR code de todo certificado apontar
+   para lugar nenhum
+6. **Contas institucionais** de Supabase, Vercel e GitHub, e plano pago do
+   Supabase (o gratuito pausa por inatividade)
 
-| Tipo | Status |
-|---|---|
-| texto, video, quiz, checkpoint, material | ✅ aluno e editor do professor |
-| envio | ❌ nunca construído — arrasta fila de correção. Adiar até haver demanda |
-
----
-
-## 8. O que falta, em ordem
-
-1. **Catálogo com área, filtro e busca.** `curso` não tem campo `area`, e
-   `/cursos` é lista única sem busca. Fazer **antes** de subir conteúdo real,
-   senão vira backfill em curso publicado.
-2. **Livro de certificados exportável (CSV).** Aberto desde a primeira revisão.
-   É simultaneamente backup e o registro que a PROEX vai querer independente da
-   plataforma existir. Hoje, perder o projeto Supabase mata toda validação
-   pública já emitida.
-3. **Acessibilidade e tokens de cor.** `--color-subtle: #9aa0a6` sobre branco dá
-   contraste 2,64:1 — reprovado na WCAG AA (mínimo 4,5:1), usado em 66 lugares.
-   Site de universidade federal: eMAG e LBI não são opcionais. A correção
-   honesta é reduzir a dois níveis de cor e diferenciar o terceiro por tamanho
-   e peso, porque um `subtle` legível fica indistinguível do `muted`.
-4. **Papel acima da coordenação** (remover/atribuir papéis, desabilitar usuário,
-   avisos). Hoje "coordenador" e "admin" são o mesmo papel; criar um quarto
-   nível exige revisitar todo `e_admin()`.
-5. **Notificações por e-mail.** Nunca implementadas.
-6. **`liberar_reinscricao`.** Não há como a coordenação liberar quem foi
-   aprovado a refazer um curso (caso de certificado revogado por fraude).
-   Não construído por falta de caso real; seria RPC com `log_admin`, nos moldes
-   de `reabrir_turma`.
-7. **Reordenação por arrastar** (`mover_modulo`/`mover_bloco` já existem).
-8. **Migrar `middleware` para `proxy`** — aviso do Next 16, ainda não quebra.
+**Fora de escopo por decisão:** bloco de envio (arrasta fila de correção),
+questionário de autoavaliação (a estrutura de competências já é a base dele),
+notificações por e-mail, editor visual de texto (dependência que apodrece),
+plataforma terceira de badges (recriaria a dependência que a credencial assinada
+eliminou).
 
 ---
 
-## 9. Armadilhas técnicas (não repetir)
+## 8. Armadilhas de ferramenta
 
-- **`next build` é mais rígido que `next dev`.** Union type em retorno de server
-  action passa no dev e falha no build. Sempre formato único:
-  `{ok: boolean; erro?: string}`.
-- **`tsc --noEmit` não substitui `next build`.** Typecheck não pega import de
-  arquivo apagado; o build pega. Aconteceu — um lote reintroduziu import de
-  componente removido e só o build acusou.
-- **Nem o build pega erro de banco.** Recursão de RLS, permissão negada,
-  constraint violada: só aparecem com banco respondendo. Migration só é validada
-  pelo teste real.
-- **Editar arquivo por trecho perde chave de fechamento.** Mandar o arquivo
-  inteiro quando a edição envolver estrutura de blocos.
+- **SQL Editor do Supabase executa apenas o TRECHO SELECIONADO** quando há
+  seleção ativa, e mostra só o resultado da última instrução quando se cola
+  várias. Numa consulta é chato; num `delete` é irreversível.
+- **`delete from storage.objects` é bloqueado.** Aquela tabela é o registro do
+  arquivo, não o arquivo. Apagar a linha deixa arquivo órfão para sempre. Apague
+  o curso primeiro e depois localize os órfãos.
+- **`create or replace function` não troca nome de parâmetro** — precisa de
+  `drop function` antes.
 - **Migration que muda comportamento automático precisa de backfill.** Mordeu
-  quatro vezes: certificado sem emissão, seed sem `autor_id`, `iniciadoEm` do
-  vídeo, encontro nº 1 das turmas antigas.
-- **`create or replace function` não troca nome de parâmetro.** Precisa de `drop
-  function` antes — foi o caso de `registrar_presenca` → `registrar_chamada`.
-- **`git push` rejeitado por non-fast-forward:** resolver com `git pull --no-edit`.
-- **Extrair zip por cima do projeto esconde o que mudou.** O `git status` com
-  contagem exata de arquivos substitui a conferência visual.
-- **SQL Editor do Supabase mostra só o resultado da ÚLTIMA instrução** quando se
-  cola várias separadas por `;`. Rodar uma por vez ou combinar com `union all`.
+  quatro vezes. Às vezes o backfill correto é **não fazer nada** (o prazo da
+  `0036` não é retroativo de propósito) — e isso precisa estar escrito.
+- **Union type em retorno de server action** passa no `next dev` e falha no
+  `next build`. Formato único: `{ok: boolean; erro?: string}`.
+- **`git push` rejeitado por non-fast-forward:** `git pull --no-edit` antes.
+- **Aviso de `middleware` depreciado no Next 16** é só aviso. Não migrado.
 
 ---
 
-## 10. Performance
+## 9. Onde está cada coisa
 
-Cada `supabase.auth.getUser()` é **ida e volta na rede** ao servidor de Auth, não
-leitura de cookie. Chegou a haver três por página (middleware, layout, página).
+```
+src/app/            rotas (App Router)
+  ├ page.tsx        landing pública + início logado
+  ├ cursos/         catálogo e página do curso
+  ├ trilha/         experiência do aluno
+  ├ professor/      autoria e gestão de turma
+  ├ admin/          coordenação
+  ├ validar/        validação pública (sem login)
+  ├ api/credencial/ credencial assinada (Open Badges 3.0)
+  └ emissor/chaves  chave pública de verificação
+src/components/     UI compartilhada
+src/lib/
+  ├ auth.ts         sessaoAtual(), exigirAdmin(), exigirProfessor()
+  ├ credencial.ts   monta, assina e verifica credencial
+  ├ blocos/         schemas zod dos seis tipos de bloco
+  └ supabase/       clientes server, client e middleware
+supabase/migrations/  0001 a 0039
+supabase/scripts/     reset_piloto.sql, excluir_cursos_teste.sql (NÃO são migrations)
+scripts/              gerar e verificar chave de credencial
+```
 
-- `src/lib/auth.ts` expõe `sessaoAtual()`, memorizado com `cache()` do React —
-  uma resolução por renderização, compartilhada entre layout e páginas.
-  **`cache()`, nunca `unstable_cache`**: o segundo guarda entre requisições, e
-  cachear identidade entre requisições serve a sessão de um usuário para outro.
-- O middleware pula `getUser()` quando não há cookie `sb-` — visitante anônimo
-  em `/validar` não paga viagem nenhuma ao Auth.
-- Consultas independentes vão em `Promise.all` nas rotas quentes.
-- **Região importa mais que tudo isso.** Função da Vercel e banco do Supabase em
-  continentes diferentes custam ~120ms por viagem, e nenhum código conserta.
-  Ambos devem estar na América do Sul (`gru1`).
+Variável de ambiente além das do Supabase: `CREDENCIAL_CHAVE_PRIVADA` (Ed25519,
+PEM com `\n` escapado, marcada como Sensitive na Vercel). Sem ela, a credencial
+sai sem assinatura e com aviso — nada quebra.
 
 ---
 
-## 11. Setup
+## 10. Como este projeto foi conduzido
 
-```bash
-git clone https://github.com/augustocastrol3mos-creator/trilhas-ufr.git
-cd trilhas-ufr && npm i
-```
+Augusto não é desenvolvedor de formação — aprendeu programando este projeto, com
+a IA escrevendo o código e explicando as decisões, e ele testando, reportando e
+aplicando. O padrão que funcionou:
 
-`.env.local` (não versionado):
-```
-NEXT_PUBLIC_SUPABASE_URL=https://zflmfgdfxrsxunqfoarh.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<chave anon/publishable>
-```
+- Explicar o **porquê** de cada decisão, não só entregar código
+- Quando ele diz "isso está estranho", geralmente está — várias das melhores
+  correções nasceram de observação dele: o RGA que muda no reingresso, a tela
+  que rotularia pessoas inocentes como suspeitas, o desalinhamento de 6px entre
+  as duas logos
+- Discordar quando for o caso, e dizer o que **não** vale fazer
+- Nomear o padrão quando um bug revelar um maior
 
-`npm run dev` → localhost:3000. Deploy automático a cada push para `main`.
-Configuração institucional (nome, assinante, `url_base` dos QR codes): tabela
-`configuracao`, linha única, editável por SQL.
+**A partir de 2027 o Trilhas vira extensão permanente**, com equipe rotativa
+mantendo a plataforma e revisando as trilhas. O risco deixa de ser abandono e
+passa a ser **perda de memória**: gente nova todo ano, sem contato com quem
+construiu.
 
----
-
-## 12. Como este projeto é conduzido
-
-Augusto está aprendendo a programar através do projeto: Claude escreve o código
-e explica as decisões, Augusto testa, reporta e aplica. O que funciona:
-
-- Explicar o **porquê** de cada decisão de arquitetura, não só entregar código.
-- **Clonar o repositório antes de começar cada lote**, não só para conferir
-  depois. "Funcionou" e "está no GitHub" são fatos diferentes — confundir os
-  dois fez um lote sobrescrever o anterior e quebrar o build.
-- **Fazer push antes de dizer que funcionou**, para que os dois fatos coincidam.
-- Rodar `next build` de verdade antes de entregar, não só `tsc`.
-- Depois de cada lote: listar arquivos alterados, a migration a rodar, e um
-  roteiro curto de teste — com o teste de **regressão** antes do de novidade.
-- Quando um bug revela um padrão maior, **nomear o padrão** na seção 3, não só
-  corrigir o caso pontual.
+Por isso este arquivo importa mais que qualquer teste automatizado.
+**Atualizá-lo deve ser parte do trabalho de quem mexer no projeto** — documento
+que só uma pessoa mantém morre com ela.
