@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CertificadoFrente, CertificadoVerso, type CertificadoDados } from '@/components/Certificado'
 import BotaoImprimir from './BotaoImprimir'
 import { sessaoAtual } from '@/lib/auth'
+import CompartilharLinkedIn from './CompartilharLinkedIn'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +20,7 @@ export default async function CertificadoPage({
   // certificado e configuracao são independentes — juntas
   const [{ data: c }, { data: cfg }] = await Promise.all([
     supabase.from('certificado').select('*').eq('id', id).single(),
-    supabase.from('configuracao').select('instituicao_nome, url_base').single(),
+    supabase.from('configuracao').select('instituicao_nome, url_base, orgao_emissor').single(),
   ])
 
   if (!c) notFound()
@@ -58,6 +59,20 @@ export default async function CertificadoPage({
         </div>
         <BotaoImprimir />
       </div>
+
+      {/* Compartilhar só faz sentido para certificado válido: divulgar um
+          revogado seria pedir para a pessoa se expor. */}
+      {!c.revogado_em && (
+        <div className="no-print mb-6">
+          <CompartilharLinkedIn
+            cursoTitulo={c.curso_titulo}
+            codigo={c.codigo}
+            emitidoEm={c.emitido_em}
+            orgaoEmissor={cfg?.orgao_emissor ?? cfg?.instituicao_nome ?? 'Universidade Federal de Rondonópolis'}
+            urlValidacao={urlValidacao}
+          />
+        </div>
+      )}
 
       {c.revogado_em && (
         <div className="no-print mb-6 rounded-lg bg-danger-soft p-4 text-sm text-danger">
