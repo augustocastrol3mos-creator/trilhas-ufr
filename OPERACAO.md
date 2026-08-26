@@ -32,12 +32,19 @@ pode acabar removido, e a recuperação de senha vai para o celular de alguém.
       **principalmente o endereço de validação**. O valor de fábrica é
       `localhost`, e com ele o QR code de todo certificado aponta para lugar
       nenhum. A tela avisa quando algo ainda está no padrão.
+- [ ] **Redirect URLs no painel do Supabase** (Authentication → URL
+      Configuration). Acrescente `https://<endereço>/auth/callback` à allowlist.
+      É o que faz o link de qualquer e-mail — confirmar cadastro, redefinir
+      senha, trocar e-mail — voltar para a tela certa. Sem isso, o Supabase
+      ignora o destino pedido e o link não resolve nada. **Faça este antes do
+      próximo**, nesta ordem.
 - [ ] Confirmação de e-mail religada no Supabase (Authentication → Providers).
       Enquanto estiver desligada, qualquer pessoa se cadastra com qualquer
       endereço e o nome impresso no certificado é autodeclarado.
-- [ ] Recuperação de senha — **não existe hoje**. Sem ela, quem administra vira
-      o serviço de reset de senha de todo aluno que esquecer. Precisa ser
-      construída.
+- [ ] Recuperação de senha — já existe em `/login` → "Esqueci minha senha".
+      Teste com um endereço real antes de liberar a equipe: é o item que, se
+      falhar, transforma quem administra no serviço de reset de senha de todo
+      aluno que esquecer.
 - [ ] Chave de assinatura das credenciais gerada e guardada
       (`node scripts/gerar-chave-credencial.mjs`, valor em
       `CREDENCIAL_CHAVE_PRIVADA` na Vercel, marcado como *Sensitive*)

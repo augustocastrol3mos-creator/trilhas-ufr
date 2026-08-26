@@ -13,12 +13,21 @@ import { NextResponse, type NextRequest } from 'next/server'
  * manda não usar sozinha, e que já falhou cinco vezes neste projeto. Bastaria
  * alguém acrescentar uma policy de leitura ampla para virarem vazamento real no
  * mesmo instante, sem nenhum aviso.
+ *
+ * `/auth/callback` NÃO entra nesta lista, e isso é essencial: é justamente a
+ * rota que a pessoa acessa SEM sessão, vinda do link do e-mail, para ganhar
+ * uma. Exigir login ali criaria um laço — precisaria estar logado para
+ * conseguir logar.
  */
 const ROTAS: { prefixo: string; papeis?: string[] }[] = [
   { prefixo: '/meus-cursos' },
   { prefixo: '/trilha' },
   { prefixo: '/certificados' },
   { prefixo: '/perfil' },
+  // A sessão de recuperação de senha é uma sessão comum: quando o
+  // /auth/callback termina, a pessoa já está autenticada. Por isso a proteção
+  // desta tela é a mesma das outras, sem nenhum caso especial.
+  { prefixo: '/nova-senha' },
   { prefixo: '/professor', papeis: ['instrutor', 'admin'] },
   { prefixo: '/admin', papeis: ['admin'] },
 ]

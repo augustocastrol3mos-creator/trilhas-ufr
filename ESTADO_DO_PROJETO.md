@@ -146,7 +146,22 @@ nunca rodar. Só a checagem de categoria, que dispara sempre, revelou.
 defeitos: avisos invisíveis, contadores zerados, página inicial vazia. **Sempre
 `const { data, error }` e ao menos `console.error`.**
 
-### 4.10 Duas medições, uma variável
+### 4.10 Funcionalidade que liga por interruptor externo nunca foi testada
+`cadastrar()` terminava em `redirect('/cursos')` porque, com a confirmação de
+e-mail DESLIGADA, o `signUp` devolve sessão na hora. Ligada, ele não devolve — e
+a pessoa cairia em `/cursos` deslogada, sem erro, concluiria que o cadastro
+falhou e tentaria de novo. Faltava também a rota `/auth/callback` inteira, sem a
+qual nenhum link de e-mail funciona (a troca de e-mail do perfil mandava link
+desde a `0031` e ele nunca teve destino).
+
+É a 4.8 num lugar pior: aquele caminho não estava só sem teste, estava
+**impossível de executar** — e o que o torna executável não é código, é uma
+chave num painel de terceiro. Não passa por build, por deploy nem por revisão.
+**Toda configuração externa que muda o comportamento do código precisa estar
+escrita como pré-requisito de quem for virá-la**, junto do que precisa existir
+antes.
+
+### 4.11 Duas medições, uma variável
 Um `explain analyze` foi de 9ms para 1,4ms e pareceu efeito de uma mudança no
 middleware — era cache do Postgres. Middleware não passa pelo SQL Editor.
 Descarte a primeira medição de qualquer `explain analyze`.
@@ -185,18 +200,21 @@ select nome, aplicada_em from migration_aplicada order by nome;
 | `0032` | capas, destaque curado, painéis de início por papel |
 | `0033` | configuração pela interface e exportações CSV |
 | `0034` | `log_admin.alvo_id` aceita nulo |
-| `0035` | **⚠️ RODOU NO BANCO, NÃO ESTÁ VERSIONADA** — corrige o `array_append` (4.6) |
+| `0035` | corrige o `array_append` (4.6) |
 | `0036` | prazo de conclusão; arquivar escolhe se pode concluir |
 | `0037` | apresentação do curso; prateleira de materiais |
 | `0038` | 12 competências e 75 atributos; impressas no certificado |
 | `0039` | código de certificado de 6 para 10 caracteres |
 
-**Pendência conhecida:** a `0035` foi aplicada em produção e nunca salva no
-repositório. Quem reconstruir o banco do zero terá `validar_publicacao` quebrada.
-Recuperável do banco de produção com:
+A `0030` não existe — foi absorvida pela `0031` antes de ser aplicada. São 38
+arquivos para numeração até 39, e isso é esperado.
+
+**Se uma migration um dia rodar em produção sem entrar no repositório** (já
+aconteceu com a `0035`, desde então versionada), o corpo da função é recuperável
+do banco:
 
 ```sql
-select prosrc from pg_proc where proname = 'validar_publicacao';
+select prosrc from pg_proc where proname = 'nome_da_funcao';
 ```
 
 ---
@@ -223,10 +241,13 @@ turma real.
 
 1. **Livro de certificados em CSV** — já existe em `/admin/dados`; falta virar
    rotina da coordenação
-2. **Recuperação de senha** — NÃO EXISTE. Sem isso, quem administra vira o
-   serviço de reset de senha de todo aluno
-3. **Confirmação de e-mail** — desligada no Supabase; o nome impresso no
-   certificado é autodeclarado enquanto estiver assim
+2. **Recuperação de senha** — construída. Falta testar de ponta a ponta em
+   produção, com e-mail real
+3. **Confirmação de e-mail** — ainda desligada no Supabase; o nome impresso no
+   certificado é autodeclarado enquanto estiver assim. O código já está pronto
+   para ela (`/auth/callback` e o `cadastrar()` que não assume sessão), mas
+   **antes de virar a chave** é preciso pôr `/auth/callback` na allowlist de
+   Redirect URLs do painel — sem isso o link do e-mail leva a lugar nenhum
 4. **Reset dos dados de teste** (`supabase/scripts/reset_piloto.sql`) — precisa
    acontecer **antes** de o time criar cursos, ou o trabalho deles some junto
 5. **Configuração institucional** em `/admin/configuracao` — `url_base` ainda
