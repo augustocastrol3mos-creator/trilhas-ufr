@@ -65,7 +65,7 @@ export default function Destaque({
 
       {aberto && (
         <div className="rounded-md border border-border bg-canvas p-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <label className="block flex-1 text-xs font-medium text-muted">
               Por que este curso agora
               <textarea

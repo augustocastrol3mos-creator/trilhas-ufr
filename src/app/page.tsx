@@ -98,7 +98,7 @@ export default async function Home({
       {(cursos ?? []).length > 0 && (
         <section className="border-b border-border bg-surface">
           <div className="mx-auto max-w-6xl px-6 py-14">
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <h2 className="font-display text-2xl font-semibold text-ink">Cursos abertos agora</h2>
               <Link href="/cursos" className="shrink-0 text-sm font-medium text-primary hover:underline">
                 Ver todos

@@ -159,7 +159,7 @@ export default async function CursosPage({
                 />
 
                 <div className="flex flex-1 flex-col p-5">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <span className="text-xs font-medium text-primary">
                     {c.categoria?.nome ?? 'Sem categoria'}
                   </span>
@@ -176,7 +176,7 @@ export default async function CursosPage({
                   <p className="mt-1.5 line-clamp-2 text-sm text-muted">{c.descricao}</p>
                 )}
 
-                <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-muted">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4 text-xs text-muted">
                   <span className="flex items-center gap-3">
                     <span className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />

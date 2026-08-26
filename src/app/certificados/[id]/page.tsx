@@ -50,11 +50,17 @@ export default async function CertificadoPage({
 
   return (
     <div>
-      <div className="no-print mb-6 flex items-center justify-between gap-4">
-        <div>
+      <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <h1 className="font-display text-2xl font-semibold text-ink">{c.curso_titulo}</h1>
           <p className="mt-1 text-sm text-muted">
-            Código {c.codigo} · para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
+            Código <span className="font-mono text-ink">{c.codigo}</span>
+            {/* A instrução de "Salvar como PDF" é de navegador de desktop e
+                ocupava cinco linhas no celular, empurrando o botão para fora
+                da tela. Some no mobile, onde nem se aplica igual. */}
+            <span className="hidden sm:inline">
+              {' '}· para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
+            </span>
           </p>
         </div>
         <BotaoImprimir codigo={c.codigo} />

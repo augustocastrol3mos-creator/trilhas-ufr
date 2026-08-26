@@ -134,7 +134,7 @@ export default async function EditorCursoPage({
       <ol className="mt-4 space-y-4">
         {lista.map((m: any) => (
           <li key={m.id} className="rounded-lg border border-border bg-surface p-5">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="font-display font-semibold text-ink">
                   {m.ordem}. {m.titulo}

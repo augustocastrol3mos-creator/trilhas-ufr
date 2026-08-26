@@ -174,7 +174,7 @@ export default function EditorBloco({
       {msg && <p className="rounded-md bg-primary-soft px-3 py-2 text-sm text-primary-dark">{msg}</p>}
       {erro && <p className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{erro}</p>}
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <button
           onClick={salvar}
           disabled={pendente}
@@ -265,7 +265,7 @@ function EditorQuiz({ config, set }: { config: any; set: (p: any) => void }) {
       <ol className="mt-6 space-y-5">
         {questoes.map((q, i) => (
           <li key={q.id} className="rounded-lg border border-border bg-canvas p-4">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <span className="mt-2 text-sm font-medium text-muted">{i + 1}.</span>
               <textarea
                 value={q.enunciado}

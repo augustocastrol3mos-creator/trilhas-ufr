@@ -41,11 +41,11 @@ export default function BotaoImprimir({ codigo }: { codigo: string }) {
   }, [aberto])
 
   return (
-    <div ref={caixa} className="relative shrink-0">
+    <div ref={caixa} className="relative">
       <div className="flex">
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-l-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+          className="inline-flex min-w-0 items-center gap-2 rounded-l-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
         >
           <Printer className="h-4 w-4" aria-hidden="true" />
           Imprimir / salvar PDF
@@ -68,7 +68,7 @@ export default function BotaoImprimir({ codigo }: { codigo: string }) {
       {aberto && (
         <div
           role="menu"
-          className="absolute right-0 z-10 mt-1.5 w-80 rounded-lg border border-border bg-surface p-1 shadow-lg"
+          className="absolute right-0 z-10 mt-1.5 w-[min(20rem,calc(100vw-2.5rem))] rounded-lg border border-border bg-surface p-1 shadow-lg"
         >
           <a
             href={`/api/credencial/${codigo}`}

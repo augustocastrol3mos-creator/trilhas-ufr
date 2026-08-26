@@ -33,7 +33,7 @@ export default function CardCurso({
 
   return (
     <li className={`rounded-lg border bg-surface p-5 ${emAnalise ? 'border-accent' : 'border-border'}`}>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-display font-semibold text-ink">{curso.titulo}</p>
           <p className="mt-1 text-xs text-subtle">

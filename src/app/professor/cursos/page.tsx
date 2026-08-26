@@ -32,7 +32,7 @@ export default async function MeusCursosProfessorPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Meus cursos</h1>
           <p className="mt-1 text-sm text-muted">
@@ -73,7 +73,7 @@ export default async function MeusCursosProfessorPage() {
           <li key={c.id}>
             <Link
               href={`/professor/cursos/${c.id}`}
-              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
+              className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
             >
               <div className="min-w-0">
                 <p className="truncate font-display font-semibold text-ink">{c.titulo}</p>

@@ -42,7 +42,7 @@ export default async function AdminTurmasPage() {
           <li key={t.id}>
             <Link
               href={`/professor/turmas/${t.id}`}
-              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
+              className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
             >
               <div className="min-w-0">
                 <p className="truncate font-display font-semibold text-ink">{t.curso?.titulo}</p>

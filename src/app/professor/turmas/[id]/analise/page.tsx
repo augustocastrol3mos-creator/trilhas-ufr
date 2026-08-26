@@ -61,7 +61,7 @@ export default async function AnalisePage({
                 const critico = pct < 50
                 return (
                   <li key={item.id}>
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
                       <p className="text-sm text-ink">{item.enunciado}</p>
                       <span
                         className={`shrink-0 text-sm font-medium ${

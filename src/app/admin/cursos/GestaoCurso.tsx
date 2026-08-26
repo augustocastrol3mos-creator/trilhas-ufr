@@ -87,7 +87,7 @@ export default function GestaoCurso({
 
       {painel === 'arquivar' && (
         <div className="rounded-md border border-border bg-canvas p-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <h4 className="font-display text-sm font-semibold text-ink">
               Arquivar &ldquo;{curso.titulo}&rdquo;
             </h4>
@@ -170,7 +170,7 @@ export default function GestaoCurso({
 
       {painel === 'excluir' && (
         <div className="rounded-md border-2 border-danger bg-danger-soft/40 p-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <h4 className="flex items-center gap-2 font-display text-sm font-semibold text-danger">
               <TriangleAlert className="h-4 w-4" />
               Excluir &ldquo;{curso.titulo}&rdquo; permanentemente

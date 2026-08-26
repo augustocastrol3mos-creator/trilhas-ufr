@@ -100,7 +100,7 @@ export default async function PerfilPage() {
             coordenação aceita para integralização.
           </p>
 
-          <dl className="mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-md border border-border bg-border">
+          <dl className="mt-5 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-3">
             <Numero Icon={BookOpen} rotulo="Inscrições" valor={p.matriculas ?? 0} />
             <Numero Icon={GraduationCap} rotulo="Em andamento" valor={p.emAndamento ?? 0} />
             <Numero Icon={Award} rotulo="Certificados" valor={p.certificados ?? 0} />
@@ -114,7 +114,7 @@ export default async function PerfilPage() {
               </h3>
               <ul className="mt-2.5 space-y-1.5">
                 {(p.porCategoria ?? []).map((c) => (
-                  <li key={c.nome} className="flex items-baseline justify-between gap-4 text-sm">
+                  <li key={c.nome} className="flex flex-wrap items-baseline justify-between gap-4 text-sm">
                     <span className="text-ink">{c.nome}</span>
                     <span className="shrink-0 font-medium text-muted">{c.horas}h</span>
                   </li>
@@ -131,7 +131,7 @@ export default async function PerfilPage() {
               </h3>
               <ul className="mt-2.5 space-y-1.5">
                 {comps.map((k) => (
-                  <li key={k.slug} className="flex items-baseline justify-between gap-4 text-sm">
+                  <li key={k.slug} className="flex flex-wrap items-baseline justify-between gap-4 text-sm">
                     <span className="text-ink">{k.nome}</span>
                     <span className="shrink-0 font-medium text-muted">
                       {k.horas}h · {k.cursos} {k.cursos === 1 ? 'curso' : 'cursos'}

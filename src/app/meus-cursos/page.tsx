@@ -55,7 +55,7 @@ export default async function MeusCursosPage() {
             <li key={m.id}>
               <Link
                 href={`/trilha/${m.id}`}
-                className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface p-5 hover:border-border-strong"
               >
                 <div className="min-w-0">
                   <p className="truncate font-display text-base font-semibold text-ink">

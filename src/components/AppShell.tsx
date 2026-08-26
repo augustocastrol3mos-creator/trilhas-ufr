@@ -41,7 +41,7 @@ export default function AppShell({
   return (
     <div className="min-h-screen md:flex">
       {/* Topbar mobile */}
-      <div className="no-print flex items-center justify-between border-b border-border bg-white px-4 py-3 md:hidden">
+      <div className="no-print flex flex-wrap items-center justify-between border-b border-border bg-white px-4 py-3 md:hidden">
         <Marca compacta />
         <button onClick={() => setAberto((v) => !v)} aria-label="Abrir menu">
           {aberto ? <X className="h-5 w-5 text-ink" /> : <Menu className="h-5 w-5 text-ink" />}

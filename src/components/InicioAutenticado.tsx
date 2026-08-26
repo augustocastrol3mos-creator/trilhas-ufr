@@ -175,7 +175,7 @@ export default function InicioAutenticado({
       {/* ---------- continue ---------- */}
       {emAndamento.length > 0 && (
         <section className="mt-8">
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
             <h2 className="font-display text-lg font-semibold text-ink">Continue de onde parou</h2>
             <Link href="/meus-cursos" className="text-sm font-medium text-primary hover:underline">
               Todos os meus cursos
@@ -301,7 +301,7 @@ export default function InicioAutenticado({
       {/* ---------- novidades ---------- */}
       {novidades.length > 0 && (
         <section className="mt-10">
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
             <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
               Publicados recentemente
