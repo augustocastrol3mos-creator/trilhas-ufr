@@ -52,6 +52,8 @@ export default async function Home({
     .from('curso')
     .select('id, slug, titulo, descricao, carga_horaria, modalidade, capa_url, categoria(nome)')
     .eq('status', 'publicado')
+    // Vitrine da página inicial: mesmo filtro explícito do catálogo.
+    .eq('visibilidade', 'catalogo')
     .order('titulo')
     .limit(3)
 

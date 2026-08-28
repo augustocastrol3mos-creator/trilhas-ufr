@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, BarChart3, ClipboardCheck, CalendarCheck } from 'lucide-react'
 import ReabrirTurma from './ReabrirTurma'
+import ConvidarAlunos from './ConvidarAlunos'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual, exigirProfessor } from '@/lib/auth'
 
@@ -35,7 +36,7 @@ export default async function TurmaPage({
 
   const { data: turma } = await supabase
     .from('turma')
-    .select('id, identificador, tipo, status, encontro_data, encontro_local, curso(titulo, modalidade)')
+    .select('id, identificador, tipo, status, encontro_data, encontro_local, curso(titulo, modalidade, visibilidade)')
     .eq('id', id)
     .single()
 
@@ -99,6 +100,15 @@ export default async function TurmaPage({
         )}
         </div>
       </div>
+
+      {/* Só em curso por convite. Nos demais o aluno se inscreve sozinho, e
+          uma caixa de e-mails ali seria um caminho paralelo sem motivo — mais
+          um jeito de fazer a mesma coisa é mais um jeito de fazer errado. */}
+      {!encerrada && (turma as any).curso?.visibilidade === 'convite' && (
+        <div className="mt-6">
+          <ConvidarAlunos turmaId={id} />
+        </div>
+      )}
 
       {encerrada && ehAdmin && <ReabrirTurma turmaId={id} />}
 

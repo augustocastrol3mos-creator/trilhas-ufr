@@ -9,6 +9,7 @@ import NovoModulo from './NovoModulo'
 import Reordenar from './Reordenar'
 import EditorCapa from './EditorCapa'
 import PrazoConclusao from './PrazoConclusao'
+import VisibilidadeCurso from './VisibilidadeCurso'
 import EditorApresentacao from './EditorApresentacao'
 import EditorCompetencias from './EditorCompetencias'
 import { exigirProfessor } from '@/lib/auth'
@@ -24,7 +25,7 @@ export default async function EditorCursoPage({
 
   const { data: curso } = await supabase
     .from('curso')
-    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final, capa_url, prazo_conclusao_dias, apresentacao, categoria(nome), curso_competencia(competencia_id)')
+    .select('id, titulo, descricao, status, modalidade, emissao, carga_horaria, nota_minima_final, capa_url, prazo_conclusao_dias, apresentacao, visibilidade, categoria(nome), curso_competencia(competencia_id)')
     .eq('id', id)
     .single()
 
@@ -81,6 +82,13 @@ export default async function EditorCursoPage({
           cursoId={id}
           disponiveis={(competencias ?? []).filter((c: any) => c.ativa) as any}
           selecionadas={((curso as any).curso_competencia ?? []).map((x: any) => x.competencia_id)}
+        />
+      </div>
+
+      <div className="mt-4">
+        <VisibilidadeCurso
+          cursoId={id}
+          atual={(curso as any).visibilidade ?? 'catalogo'}
         />
       </div>
 

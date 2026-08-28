@@ -33,6 +33,12 @@ export default async function CursosPage({
       'id, slug, titulo, descricao, carga_horaria, modalidade, capa_url, categoria(nome, slug), turma(id)'
     )
     .eq('status', 'publicado')
+    // Filtro EXPLÍCITO, mesmo com o RLS já escondendo curso por convite. É a
+    // lição 4.3 aplicada ao contrário: assim como não se confia no RLS para
+    // esconder dado alheio, não se confia nele para montar uma vitrine. Curso
+    // com visibilidade `link` é legítimo e o RLS deixa passar — só não deve
+    // aparecer aqui.
+    .eq('visibilidade', 'catalogo')
     .order('titulo')
 
   if (error) {
