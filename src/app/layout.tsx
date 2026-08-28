@@ -28,9 +28,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // do papel do usuário — nenhuma tela reimplementa a regra. Só para quem está
   // logado: a área pública não mostra aviso interno.
   let avisos: Aviso[] = []
+  // Quem ainda não concluiu a autoavaliação recebe o convite. A consulta anda
+  // junto com a dos avisos no mesmo Promise.all: são duas idas ao banco
+  // independentes, e em série elas somariam latência à toa.
+  let precisaAutoavaliacao = false
   if (usuario) {
     const supabase = await createClient()
-    const { data, error } = await supabase.rpc('meus_avisos')
+    const [{ data, error }, { data: fez, error: erroFez }] = await Promise.all([
+      supabase.rpc('meus_avisos'),
+      supabase.rpc('tem_autoavaliacao'),
+    ])
+    if (erroFez) console.error('tem_autoavaliacao:', erroFez.message)
+    // Erro aqui não deve mostrar o convite a quem já respondeu: na dúvida,
+    // não incomoda.
+    precisaAutoavaliacao = !erroFez && fez === false
     // Aviso que falha não deve derrubar o app inteiro — mas falhar em silêncio
     // esconde o defeito (foi o que aconteceu com a 0025). Registrar no log do
     // servidor deixa o erro visível nos logs da Vercel sem quebrar a página.
@@ -42,7 +53,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="pt-BR" className={`${inter.variable} ${plexSans.variable}`}>
       <body className="antialiased">
         {usuario ? (
-          <AppShell usuario={usuario} avisos={avisos}>{children}</AppShell>
+          <AppShell usuario={usuario} avisos={avisos} precisaAutoavaliacao={precisaAutoavaliacao}>
+            {children}
+          </AppShell>
         ) : (
           <PublicShell>{children}</PublicShell>
         )}

@@ -28,9 +28,10 @@ export default async function QuestionarioPage({
   const { refazer } = await searchParams
   const supabase = await createClient()
 
-  const [{ data, error }, { data: jaFez, error: erroFez }] = await Promise.all([
+  const [{ data, error }, { data: jaFez, error: erroFez }, { data: refaz }] = await Promise.all([
     supabase.rpc('questionario_ativo'),
     supabase.rpc('tem_autoavaliacao'),
+    supabase.rpc('pode_refazer_questionario'),
   ])
 
   // Lição 4.9: nunca `const { data }` sozinho. Engolir erro de RPC já escondeu
@@ -65,6 +66,43 @@ export default async function QuestionarioPage({
   // explicitamente. Sem isso, o link do menu levaria a pessoa a responder de
   // novo achando que estava só conferindo.
   if (jaFez && !refazer) redirect('/questionario/resultado')
+
+  // Refazer é limitado (0041): o primeiro retrato é a linha de base, e sem um
+  // ponto de partida fixo não existe "progresso" — existe sempre um retrato só.
+  // A tela precisa explicar isso, não só recusar.
+  const podeRefazer = (refaz ?? { pode: true }) as {
+    pode: boolean
+    motivo?: string
+    disponivel_em?: string
+  }
+
+  if (refazer && jaFez && !podeRefazer.pode && !payload.resposta_id) {
+    const quando = podeRefazer.disponivel_em
+      ? new Date(podeRefazer.disponivel_em).toLocaleDateString('pt-BR')
+      : null
+    return (
+      <div className="mx-auto max-w-xl rounded-lg border border-border bg-surface p-6">
+        <h1 className="font-display text-lg font-semibold text-ink">
+          Você já respondeu esta autoavaliação
+        </h1>
+        <p className="mt-3 text-sm text-muted">
+          A primeira resposta é o seu ponto de partida, e ela fica guardada como está —
+          é contra ela que dá para enxergar o quanto você mudou. Refazer libera quando
+          você concluir um curso{quando ? `, ou a partir de ${quando}` : ''}.
+        </p>
+        <p className="mt-3 text-sm text-muted">
+          Se você respondeu por engano ou entendeu a escala ao contrário, fale com a
+          coordenação: ela pode liberar uma nova tentativa.
+        </p>
+        <Link
+          href="/questionario/resultado"
+          className="mt-5 inline-block rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+        >
+          Ver meu resultado
+        </Link>
+      </div>
+    )
+  }
 
   const itens = payload.itens ?? []
 

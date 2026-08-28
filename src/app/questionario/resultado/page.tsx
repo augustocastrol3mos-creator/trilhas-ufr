@@ -41,12 +41,17 @@ export default async function ResultadoPage() {
 
   const supabase = await createClient()
 
-  const [{ data: perfilData, error: erroPerfil }, { data: recData, error: erroRec }, { data: covData }] =
-    await Promise.all([
-      supabase.rpc('meu_perfil_competencias'),
-      supabase.rpc('cursos_recomendados', { p_competencias: 3, p_limite: 6 }),
-      supabase.rpc('cobertura_competencias'),
-    ])
+  const [
+    { data: perfilData, error: erroPerfil },
+    { data: recData, error: erroRec },
+    { data: covData },
+    { data: refazData },
+  ] = await Promise.all([
+    supabase.rpc('meu_perfil_competencias'),
+    supabase.rpc('cursos_recomendados', { p_competencias: 3, p_limite: 6 }),
+    supabase.rpc('cobertura_competencias'),
+    supabase.rpc('pode_refazer_questionario'),
+  ])
 
   if (erroPerfil) {
     console.error('meu_perfil_competencias:', erroPerfil.message)
@@ -61,6 +66,11 @@ export default async function ResultadoPage() {
   const perfil = (perfilData ?? []) as Perfil[]
   const recomendados = (recData ?? []) as Recomendado[]
   const cobertura = (covData ?? []) as Cobertura[]
+  const refaz = (refazData ?? { pode: false }) as {
+    pode: boolean
+    motivo?: string
+    disponivel_em?: string
+  }
 
   if (perfil.length === 0) {
     return (
@@ -103,13 +113,25 @@ export default async function ResultadoPage() {
           <h1 className="font-display text-2xl font-semibold text-ink">Sua autoavaliação</h1>
           {quando && <p className="mt-1 text-sm text-muted">Respondida em {quando}</p>}
         </div>
-        <Link
-          href="/questionario?refazer=1"
-          className="flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm text-ink hover:border-border-strong"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refazer
-        </Link>
+        {/* O botão só existe quando refazer está liberado. Um botão que sempre
+            aparece e às vezes recusa ensina a pessoa a desconfiar da tela. */}
+        {refaz.pode ? (
+          <Link
+            href="/questionario?refazer=1"
+            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm text-ink hover:border-border-strong"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            {refaz.motivo === 'concluiu_curso' ? 'Refazer — você concluiu um curso' : 'Refazer'}
+          </Link>
+        ) : (
+          <p className="max-w-[16rem] text-right text-xs text-subtle">
+            Refazer libera quando você concluir um curso
+            {refaz.disponivel_em
+              ? `, ou a partir de ${new Date(refaz.disponivel_em).toLocaleDateString('pt-BR')}`
+              : ''}
+            .
+          </p>
+        )}
       </div>
 
       <p className="mt-4 rounded-md border border-border bg-canvas px-3 py-2.5 text-sm text-muted">

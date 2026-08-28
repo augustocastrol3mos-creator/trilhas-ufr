@@ -9,6 +9,7 @@ import {
 import { sair } from '@/app/login/actions'
 import Marca from './Marca'
 import Avisos, { type Aviso } from './Avisos'
+import ConviteAutoavaliacao from './ConviteAutoavaliacao'
 
 type Usuario = { nome: string; email: string; papel: string } | null
 
@@ -22,8 +23,14 @@ const NAV = [
 ]
 
 export default function AppShell({
-  usuario, avisos = [], children,
-}: { usuario: Usuario; avisos?: Aviso[]; children: React.ReactNode }) {
+  usuario, avisos = [], precisaAutoavaliacao = false, children,
+}: {
+  usuario: Usuario
+  avisos?: Aviso[]
+  /** true quando a pessoa ainda não concluiu a autoavaliação da versão ativa. */
+  precisaAutoavaliacao?: boolean
+  children: React.ReactNode
+}) {
   const pathname = usePathname()
   const [aberto, setAberto] = useState(false)
 
@@ -41,6 +48,8 @@ export default function AppShell({
 
   return (
     <div className="min-h-screen md:flex">
+      {precisaAutoavaliacao && <ConviteAutoavaliacao />}
+
       {/* Topbar mobile */}
       <div className="no-print flex flex-wrap items-center justify-between border-b border-border bg-white px-4 py-3 md:hidden">
         <Marca compacta />
