@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Clock, ClipboardCheck, Route, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import AcessoHero from '@/components/AcessoHero'
+import FormularioAcesso from '@/components/FormularioAcesso'
 import GrafismoHero from '@/components/GrafismoHero'
 import { sessaoAtual } from '@/lib/auth'
 import InicioAutenticado, { type Inicio, type Vitrine } from '@/components/InicioAutenticado'
@@ -85,7 +85,7 @@ export default async function Home({
             </div>
 
             <div className="w-full shrink-0 lg:w-[360px]">
-              <AcessoHero />
+              <FormularioAcesso variante="cartao" />
             </div>
           </div>
         </div>

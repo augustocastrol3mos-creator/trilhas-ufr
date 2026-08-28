@@ -161,7 +161,21 @@ chave num painel de terceiro. Não passa por build, por deploy nem por revisão.
 escrita como pré-requisito de quem for virá-la**, junto do que precisa existir
 antes.
 
-### 4.11 Duas medições, uma variável
+### 4.11 Interface duplicada divide o comportamento sem avisar
+A página inicial tinha um formulário de acesso próprio (`AcessoHero`), escrito
+separadamente do de `/login`. Compartilhavam as server actions, mas cada um
+desenhava a própria tela — e o lote da recuperação de senha corrigiu só um. Três
+defeitos ficaram vivos num lado só: sem "Esqueci minha senha", ignorando o campo
+`aviso` da resposta (então "conta criada, confira seu e-mail" sumia em silêncio),
+e sem pedir RGA, o que fazia quem se cadastrava pela home entrar como não-UFR e
+depender da fila de aprovação para consertar.
+
+Nenhum dos três quebra build, e nenhum aparece em teste que olha uma tela só.
+**Dois componentes que fazem a mesma coisa são um defeito com data marcada** — a
+próxima correção vai para um deles. Unificado em `FormularioAcesso`, com uma
+prop `variante` que muda só o visual.
+
+### 4.12 Duas medições, uma variável
 Um `explain analyze` foi de 9ms para 1,4ms e pareceu efeito de uma mudança no
 middleware — era cache do Postgres. Middleware não passa pelo SQL Editor.
 Descarte a primeira medição de qualquer `explain analyze`.
@@ -296,7 +310,7 @@ src/app/            rotas (App Router)
   ├ validar/        validação pública (sem login)
   ├ api/credencial/ credencial assinada (Open Badges 3.0)
   └ emissor/chaves  chave pública de verificação
-src/components/     UI compartilhada
+src/components/     UI compartilhada (FormularioAcesso serve /login e a home)
 src/lib/
   ├ auth.ts         sessaoAtual(), exigirAdmin(), exigirProfessor()
   ├ credencial.ts   monta, assina e verifica credencial
