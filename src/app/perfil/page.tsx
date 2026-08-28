@@ -4,7 +4,9 @@ import { AlertTriangle, Award, BookOpen, Clock, GraduationCap } from 'lucide-rea
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
 import DadosPrivacidade, { type Solicitacao } from './DadosPrivacidade'
-import ResumoCompetencias, { type Autoavaliacao, type Cursada } from '@/components/ResumoCompetencias'
+import ResumoCompetencias, {
+  type Autoavaliacao, type Cursada, type Demonstrada,
+} from '@/components/ResumoCompetencias'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +41,7 @@ export default async function PerfilPage() {
     { data: solicitacaoRaw },
     { data: compsRaw },
     { data: autoRaw, error: erroAuto },
+    { data: demoRaw, error: erroDemo },
   ] = await Promise.all([
       supabase
         .from('usuario')
@@ -49,10 +52,12 @@ export default async function PerfilPage() {
       supabase.rpc('minha_solicitacao_dados'),
       supabase.rpc('minhas_competencias'),
       supabase.rpc('meu_perfil_competencias'),
+      supabase.rpc('minhas_competencias_demonstradas'),
     ])
 
   // Lição 4.9: erro engolido já escondeu três defeitos neste projeto.
   if (erroAuto) console.error('meu_perfil_competencias:', erroAuto.message)
+  if (erroDemo) console.error('minhas_competencias_demonstradas:', erroDemo.message)
 
   const p = (percursoRaw ?? {}) as {
     matriculas?: number
@@ -70,6 +75,7 @@ export default async function PerfilPage() {
 
   const comps = (compsRaw ?? []) as Cursada[]
   const autoavaliacao = (autoRaw ?? []) as Autoavaliacao[]
+  const demonstradas = (demoRaw ?? []) as Demonstrada[]
   const vazio = !perfil?.nome_completo?.trim()
 
   return (
@@ -151,7 +157,11 @@ export default async function PerfilPage() {
           competências é o eixo do projeto de extensão, e o que vem primeiro na
           tela é o que a pessoa entende como sendo o assunto. */}
       <div className="mt-6">
-        <ResumoCompetencias autoavaliacao={autoavaliacao} cursadas={comps} />
+        <ResumoCompetencias
+          autoavaliacao={autoavaliacao}
+          cursadas={comps}
+          demonstradas={demonstradas}
+        />
       </div>
 
       {/* ---------- edição livre, antes da primeira inscrição ---------- */}

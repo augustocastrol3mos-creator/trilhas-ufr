@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Target, ArrowUpRight } from 'lucide-react'
+import { Target, ArrowUpRight, BadgeCheck } from 'lucide-react'
 
 export type Autoavaliacao = {
   competencia_id: string
@@ -17,6 +17,13 @@ export type Cursada = {
   slug: string
   numero: number
   horas: number
+  cursos: number
+}
+
+export type Demonstrada = {
+  numero: number
+  nome: string
+  slug: string
   cursos: number
 }
 
@@ -40,20 +47,29 @@ const FAIXA = {
  *   verificável, mas mede exposição, não domínio: ter cursado 20h de
  *   comunicação não é o mesmo que se comunicar bem.
  *
- * Nenhuma das duas, sozinha, é "a competência da pessoa". Juntas, dão a
+ *   DEMONSTRADA — um professor que acompanhou a pessoa atestou. É a única das
+ *   três que afirma algo sobre o DOMÍNIO dela, e a única que pode ir impressa
+ *   no certificado, justamente porque não vem do próprio avaliado.
+ *
+ * Nenhuma das três, sozinha, é "a competência da pessoa". Juntas, dão a
  * conversa útil: alta autoavaliação sem nenhuma hora é uma hipótese não
- * testada; horas sem melhora percebida é sinal de que o curso não pegou.
- * Empilhar as duas numa nota só apagaria exatamente essa diferença.
+ * testada; horas sem melhora percebida é sinal de que o curso não pegou; e
+ * demonstrada com autoavaliação baixa é alguém que se subestima — que talvez
+ * seja o caso mais valioso de todos para a coordenação enxergar.
+ * Empilhar as três numa nota só apagaria exatamente essas diferenças.
  */
 export default function ResumoCompetencias({
   autoavaliacao,
   cursadas,
+  demonstradas = [],
 }: {
   autoavaliacao: Autoavaliacao[]
   cursadas: Cursada[]
+  demonstradas?: Demonstrada[]
 }) {
   const respondeu = autoavaliacao.length > 0
   const horasPor = new Map(cursadas.map((c) => [c.numero, c]))
+  const atestadaPor = new Map(demonstradas.map((d) => [d.numero, d]))
 
   // Ordem: a autoavaliação vem da RPC da menor média para a maior, e essa é a
   // ordem útil — o que precisa de atenção primeiro fica no topo. Sem
@@ -65,6 +81,7 @@ export default function ResumoCompetencias({
         faixa: a.faixa,
         itens: a.itens,
         cursada: horasPor.get(a.numero),
+        atestada: atestadaPor.get(a.numero),
       }))
     : cursadas.map((c) => ({
         chave: c.slug,
@@ -72,6 +89,7 @@ export default function ResumoCompetencias({
         faixa: null,
         itens: 0,
         cursada: c,
+        atestada: atestadaPor.get(c.numero),
       }))
 
   return (
@@ -117,7 +135,18 @@ export default function ResumoCompetencias({
                 key={l.chave}
                 className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2.5"
               >
-                <span className="text-sm text-ink">{l.nome}</span>
+                <span className="flex min-w-0 items-center gap-1.5 text-sm text-ink">
+                  {l.nome}
+                  {l.atestada && (
+                    <span
+                      title={`Atestada por professor em ${l.atestada.cursos} ${l.atestada.cursos === 1 ? 'curso' : 'cursos'}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success"
+                    >
+                      <BadgeCheck className="h-3 w-3" />
+                      Demonstrada
+                    </span>
+                  )}
+                </span>
                 <span className="flex items-center gap-6">
                   {respondeu && (
                     <span className="w-36 text-right">
@@ -149,7 +178,9 @@ export default function ResumoCompetencias({
               <>
                 A coluna da esquerda é a sua autoavaliação — como você se percebe hoje, não
                 uma medição. A da direita conta as horas de cursos que você concluiu com
-                certificado.{' '}
+                certificado. O selo <span className="text-success">Demonstrada</span> é a
+                única das três que não vem de você: significa que um professor que
+                acompanhou seu trabalho atestou, e é o que vai impresso no certificado.{' '}
               </>
             )}
             Um curso pode desenvolver mais de uma competência, e as horas dele contam em

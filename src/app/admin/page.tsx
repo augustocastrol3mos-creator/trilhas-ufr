@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Settings, Download, LifeBuoy, Users, Presentation } from 'lucide-react'
+import { Award, BookOpen, ScrollText, Tags, Megaphone, PencilLine, Settings, Download, LifeBuoy, Users, Presentation, Compass } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { exigirAdmin } from '@/lib/auth'
 
@@ -51,6 +51,8 @@ export default async function AdminPage() {
       detalhe: `${v.certificadosRevogados} revogados` },
     { href: '/admin/categorias', Icon: Tags, titulo: 'Categorias', valor: totalCategorias ?? 0,
       detalhe: 'que o professor escolhe e o aluno filtra' },
+    { href: '/admin/questionario', Icon: Compass, titulo: 'Autoavaliação', valor: null,
+      detalhe: 'as frases do questionário de competências e as versões' },
     { href: '/admin/configuracao', Icon: Settings, titulo: 'Configuração', valor: null,
       detalhe: 'dados que vão impressos no certificado' },
     { href: '/admin/dados', Icon: Download, titulo: 'Exportar dados', valor: null,

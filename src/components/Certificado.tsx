@@ -6,6 +6,7 @@ export type CertificadoDados = {
   nome_titular: string
   rga_titular: string | null
   competencias: string[] | null
+  competencias_demonstradas?: string[] | null
   curso_titulo: string
   carga_horaria: number
   modalidade: 'hibrido' | 'online'
@@ -161,7 +162,20 @@ export function CertificadoVerso({
           <Campo rotulo="Participante" valor={c.nome_titular} span={2} />
           {c.rga_titular && <Campo rotulo="RGA" valor={c.rga_titular} />}
           {c.competencias && c.competencias.length > 0 && (
-            <Campo rotulo="Competências desenvolvidas" valor={c.competencias.join(' · ')} span={2} />
+            <Campo rotulo="Competências desenvolvidas pelo curso" valor={c.competencias.join(' · ')} span={2} />
+          )}
+          {/* Os dois rótulos dizem coisas diferentes e o certificado precisa
+              distinguir: o de cima é o que o CURSO desenvolve, aprovado pela
+              coordenação na publicação. Este é o que o PROFESSOR observou
+              naquela pessoa. Só aparece quando alguém de fato avaliou — a
+              maioria dos cursos online não terá esta linha, e isso é honesto:
+              não houve ninguém observando. */}
+          {c.competencias_demonstradas && c.competencias_demonstradas.length > 0 && (
+            <Campo
+              rotulo="Competências demonstradas pelo participante"
+              valor={c.competencias_demonstradas.join(' · ')}
+              span={2}
+            />
           )}
           <Campo rotulo="Carga horária" valor={`${c.carga_horaria} horas`} />
           <Campo

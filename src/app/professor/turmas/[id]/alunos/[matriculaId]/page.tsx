@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, Check, Circle, Clock, Minus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { exigirProfessor } from '@/lib/auth'
+import VereditoCompetencias, { type Linha } from './VereditoCompetencias'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,13 @@ export default async function AlunoPage({
   const { id, matriculaId } = await params
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc('progresso_aluno', { p_matricula: matriculaId })
+  const [{ data, error }, { data: compsRaw, error: erroComps }] = await Promise.all([
+    supabase.rpc('progresso_aluno', { p_matricula: matriculaId }),
+    supabase.rpc('competencias_da_matricula', { p_matricula: matriculaId }),
+  ])
+
+  // Lição 4.9: erro engolido já escondeu três defeitos neste projeto.
+  if (erroComps) console.error('competencias_da_matricula:', erroComps.message)
 
   if (error) {
     return (
@@ -28,6 +35,9 @@ export default async function AlunoPage({
   }
 
   const { aluno, modulos } = data as any
+  // Vazio quando o curso não declara nenhuma competência — o componente some
+  // sozinho nesse caso, em vez de mostrar um cartão sem conteúdo.
+  const competencias = (compsRaw ?? []) as Linha[]
   const dias = aluno.ultimaAtividade
     ? Math.floor((Date.now() - new Date(aluno.ultimaAtividade).getTime()) / 86400000)
     : null
@@ -67,6 +77,15 @@ export default async function AlunoPage({
           </span>
         )}
       </div>
+
+      {/* Antes do percurso: o veredito é o que o professor vem fazer aqui
+          quando a turma está fechando, e o percurso é a evidência que ele
+          consulta para decidir. */}
+      {competencias.length > 0 && (
+        <div className="mt-8">
+          <VereditoCompetencias matriculaId={matriculaId} linhas={competencias} />
+        </div>
+      )}
 
       <div className="mt-8 space-y-5">
         {(modulos ?? []).map((m: any) => (
