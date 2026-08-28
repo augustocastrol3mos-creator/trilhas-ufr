@@ -78,17 +78,17 @@ export default async function EditorCursoPage({
       </div>
 
       <div className="mt-4">
-        <EditorCompetencias
+        <VisibilidadeCurso
           cursoId={id}
-          disponiveis={(competencias ?? []).filter((c: any) => c.ativa) as any}
-          selecionadas={((curso as any).curso_competencia ?? []).map((x: any) => x.competencia_id)}
+          atual={(curso as any).visibilidade ?? 'catalogo'}
         />
       </div>
 
       <div className="mt-4">
-        <VisibilidadeCurso
+        <EditorCompetencias
           cursoId={id}
-          atual={(curso as any).visibilidade ?? 'catalogo'}
+          disponiveis={(competencias ?? []).filter((c: any) => c.ativa) as any}
+          selecionadas={((curso as any).curso_competencia ?? []).map((x: any) => x.competencia_id)}
         />
       </div>
 
