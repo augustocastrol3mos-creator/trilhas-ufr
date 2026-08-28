@@ -1,9 +1,10 @@
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
-import { AlertTriangle, Award, BookOpen, Clock, GraduationCap, Target } from 'lucide-react'
+import { AlertTriangle, Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { sessaoAtual } from '@/lib/auth'
 import DadosPrivacidade, { type Solicitacao } from './DadosPrivacidade'
+import ResumoCompetencias, { type Autoavaliacao, type Cursada } from '@/components/ResumoCompetencias'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,8 +33,13 @@ export default async function PerfilPage() {
   const supabase = await createClient()
   const user = await sessaoAtual()
 
-  const [{ data: perfil }, { data: percursoRaw }, { data: solicitacaoRaw }, { data: compsRaw }] =
-    await Promise.all([
+  const [
+    { data: perfil },
+    { data: percursoRaw },
+    { data: solicitacaoRaw },
+    { data: compsRaw },
+    { data: autoRaw, error: erroAuto },
+  ] = await Promise.all([
       supabase
         .from('usuario')
         .select('nome_completo, email, rga, e_estudante_ufr')
@@ -42,7 +48,11 @@ export default async function PerfilPage() {
       supabase.rpc('meu_percurso'),
       supabase.rpc('minha_solicitacao_dados'),
       supabase.rpc('minhas_competencias'),
+      supabase.rpc('meu_perfil_competencias'),
     ])
+
+  // Lição 4.9: erro engolido já escondeu três defeitos neste projeto.
+  if (erroAuto) console.error('meu_perfil_competencias:', erroAuto.message)
 
   const p = (percursoRaw ?? {}) as {
     matriculas?: number
@@ -58,9 +68,8 @@ export default async function PerfilPage() {
   // gatilho do banco; aqui só antecipamos, para não dar erro ao salvar.
   const travado = (p.matriculas ?? 0) > 0
 
-  const comps = (compsRaw ?? []) as {
-    nome: string; slug: string; horas: number; cursos: number
-  }[]
+  const comps = (compsRaw ?? []) as Cursada[]
+  const autoavaliacao = (autoRaw ?? []) as Autoavaliacao[]
   const vazio = !perfil?.nome_completo?.trim()
 
   return (
@@ -123,30 +132,6 @@ export default async function PerfilPage() {
             </>
           )}
 
-          {comps.length > 0 && (
-            <>
-              <h3 className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
-                <Target className="h-3.5 w-3.5" />
-                Competências desenvolvidas
-              </h3>
-              <ul className="mt-2.5 space-y-1.5">
-                {comps.map((k) => (
-                  <li key={k.slug} className="flex flex-wrap items-baseline justify-between gap-4 text-sm">
-                    <span className="text-ink">{k.nome}</span>
-                    <span className="shrink-0 font-medium text-muted">
-                      {k.horas}h · {k.cursos} {k.cursos === 1 ? 'curso' : 'cursos'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2 text-xs leading-relaxed text-subtle">
-                Um curso pode desenvolver mais de uma competência, e as horas dele contam
-                em cada uma — por isso a soma aqui pode passar do seu total de horas. Não é
-                erro de conta: você exercitou as duas coisas durante o mesmo curso.
-              </p>
-            </>
-          )}
-
           <div className="mt-6 flex flex-wrap gap-4 border-t border-border pt-4 text-sm font-medium">
             <Link href="/meus-cursos" className="text-primary hover:underline">
               Meus cursos
@@ -160,6 +145,14 @@ export default async function PerfilPage() {
           </div>
         </div>
       </section>
+
+      {/* ---------- competências ----------
+          Logo abaixo do percurso e ANTES dos dados cadastrais: a gestão de
+          competências é o eixo do projeto de extensão, e o que vem primeiro na
+          tela é o que a pessoa entende como sendo o assunto. */}
+      <div className="mt-6">
+        <ResumoCompetencias autoavaliacao={autoavaliacao} cursadas={comps} />
+      </div>
 
       {/* ---------- edição livre, antes da primeira inscrição ---------- */}
       {!travado && (
