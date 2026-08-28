@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Home, BookOpen, GraduationCap, Award, LogOut, Menu, X, User, ShieldCheck, Presentation, Settings,
+  Home, BookOpen, GraduationCap, Award, LogOut, Menu, X, User, ShieldCheck, Presentation, Settings, Compass,
 } from 'lucide-react'
 import { sair } from '@/app/login/actions'
 import Marca from './Marca'
@@ -17,6 +17,7 @@ const NAV = [
   { href: '/cursos', label: 'Cursos', Icon: BookOpen, exato: false },
   { href: '/meus-cursos', label: 'Meus cursos', Icon: GraduationCap, exato: false },
   { href: '/certificados', label: 'Certificados', Icon: Award, exato: false },
+  { href: '/questionario', label: 'Competências', Icon: Compass, exato: false },
   { href: '/validar', label: 'Validar certificado', Icon: ShieldCheck, exato: false },
 ]
 

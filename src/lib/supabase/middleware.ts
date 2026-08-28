@@ -24,6 +24,9 @@ const ROTAS: { prefixo: string; papeis?: string[] }[] = [
   { prefixo: '/trilha' },
   { prefixo: '/certificados' },
   { prefixo: '/perfil' },
+  // Responder é ato pessoal e o resultado é dado sensível: exige login como
+  // qualquer outra área do aluno. Sem papel especial — todo mundo responde.
+  { prefixo: '/questionario' },
   // A sessão de recuperação de senha é uma sessão comum: quando o
   // /auth/callback termina, a pessoa já está autenticada. Por isso a proteção
   // desta tela é a mesma das outras, sem nenhum caso especial.
