@@ -280,7 +280,7 @@ begin
 
   update matricula set status = 'certificado_emitido' where id = p_matricula;
   return v_id;
-end $fn$
+end $fn$;
 
 insert into migration_aplicada (nome) values ('0038_competencias.sql')
 on conflict (nome) do nothing;
